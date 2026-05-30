@@ -4,9 +4,9 @@ from ..algorithms.sorting import algorithms as sorting_algos
 from ..algorithms.searching import algorithms as searching_algos
 from ..algorithms.quantum import algorithms as quantum_algos
 from ..validation.validator import validate_algorithm
-from ..recommendation.engine import get_recommendations, analyze_array
+from ..recommendation.engine import get_sorting_recommendation, get_searching_recommendation, get_suitability, analyze_array
 from ..benchmark.engine import run_sorting_benchmark, run_searching_benchmark
-from typing import List
+from typing import List, Dict, Any
 
 router = APIRouter()
 
@@ -79,7 +79,6 @@ async def search_array(algorithm: str, data: SearchInput):
 @router.post("/analyze", response_model=ArrayAnalysis)
 async def analyze(data: ArrayInput):
     analysis = analyze_array(data.array)
-    # Add median/mode
     import statistics
     if analysis.get("is_numeric") and data.array:
         analysis["median"] = statistics.median(data.array)
@@ -89,9 +88,17 @@ async def analyze(data: ArrayInput):
             analysis["mode"] = []
     return analysis
 
-@router.post("/recommend/{task_type}", response_model=List[Recommendation])
-async def recommend(task_type: str, data: ArrayInput):
-    return get_recommendations(data.array, task_type)
+@router.post("/recommend/sorting", response_model=List[Recommendation])
+async def recommend_sorting(data: ArrayInput):
+    return get_sorting_recommendation(data.array)
+
+@router.post("/recommend/searching", response_model=List[Recommendation])
+async def recommend_searching(data: ArrayInput):
+    return get_searching_recommendation(data.array)
+
+@router.post("/suitability/{task_type}")
+async def suitability(task_type: str, data: ArrayInput):
+    return get_suitability(data.array, task_type)
 
 @router.post("/benchmark/sorting", response_model=List[BenchmarkResult])
 async def benchmark_sorting(data: ArrayInput):

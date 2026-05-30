@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
 import Lenis from 'lenis';
 
 import Navbar from './components/layout/Navbar';
@@ -9,9 +9,7 @@ import LoadingScreen from './components/common/LoadingScreen';
 
 // Lazy load pages
 const Home = React.lazy(() => import('./pages/Home/Home'));
-const Sorting = React.lazy(() => import('./pages/Sorting/Sorting'));
-const Searching = React.lazy(() => import('./pages/Searching/Searching'));
-const Benchmark = React.lazy(() => import('./pages/Benchmark/Benchmark'));
+const AnalysisLab = React.lazy(() => import('./pages/AnalysisLab/AnalysisLab'));
 const Quantum = React.lazy(() => import('./pages/Quantum/Quantum'));
 const About = React.lazy(() => import('./pages/About/About'));
 
@@ -27,7 +25,6 @@ const AppContent = () => {
     }
     requestAnimationFrame(raf);
 
-    // Simulate loading
     const timer = setTimeout(() => setLoading(false), 2000);
     return () => {
       clearTimeout(timer);
@@ -45,13 +42,14 @@ const AppContent = () => {
         <div className="flex flex-col min-h-screen">
           <Navbar />
           <main className="flex-grow pt-24">
-            <React.Suspense fallback={<div className="h-screen bg-background" />}>
+            <React.Suspense fallback={<div className="h-screen bg-[#0A0A0A]" />}>
               <AnimatePresence mode="wait">
                 <Routes location={location} key={location.pathname}>
                   <Route path="/" element={<Home />} />
-                  <Route path="/sorting" element={<Sorting />} />
-                  <Route path="/searching" element={<Searching />} />
-                  <Route path="/benchmark" element={<Benchmark />} />
+                  <Route path="/lab" element={<AnalysisLab />} />
+                  <Route path="/sorting" element={<AnalysisLab />} />
+                  <Route path="/searching" element={<AnalysisLab />} />
+                  <Route path="/benchmark" element={<AnalysisLab />} />
                   <Route path="/quantum" element={<Quantum />} />
                   <Route path="/about" element={<About />} />
                 </Routes>
