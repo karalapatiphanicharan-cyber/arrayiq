@@ -3,6 +3,7 @@ import axios from 'axios';
 import PageWrapper from '../../components/layout/PageWrapper';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cpu, Zap, Info, ArrowRight, Activity } from 'lucide-react';
+import { API_BASE_URL } from '../../constants';
 
 const Quantum = () => {
   const [array, setArray] = useState([5, 2, 9, 1, 7]);
@@ -11,7 +12,7 @@ const Quantum = () => {
 
   const runSimulation = async (algo: string) => {
     try {
-      const res = await axios.post(`http://localhost:8000/api/quantum/${algo}`, { array, target });
+      const res = await axios.post(`${API_BASE_URL}/api/quantum/${algo}`, { array, target });
       setSimulation(res.data);
     } catch (err) {
       console.error(err);

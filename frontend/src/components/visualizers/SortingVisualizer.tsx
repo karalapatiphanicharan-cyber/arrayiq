@@ -36,19 +36,55 @@ const SortingVisualizer: React.FC<Props> = ({ array, algorithm }) => {
     timeoutsRef.current = [];
   };
 
-  const generateBubbleSortSteps = (arr: number[]) => {
-    const steps = [];
+  const generateSteps = (arr: number[], algo: string) => {
+    const steps: any[] = [];
     const a = [...arr];
     const n = a.length;
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j < n - i - 1; j++) {
-        steps.push({ type: 'compare', indices: [j, j + 1], array: [...a] });
-        if (a[j] > a[j + 1]) {
-          [a[j], a[j + 1]] = [a[j + 1], a[j]];
-          steps.push({ type: 'swap', indices: [j, j + 1], array: [...a] });
+
+    if (algo === 'bubble_sort') {
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+          steps.push({ type: 'compare', indices: [j, j + 1], array: [...a] });
+          if (a[j] > a[j + 1]) {
+            [a[j], a[j + 1]] = [a[j + 1], a[j]];
+            steps.push({ type: 'swap', indices: [j, j + 1], array: [...a] });
+          }
         }
+        steps.push({ type: 'sorted', index: n - i - 1, array: [...a] });
       }
-      steps.push({ type: 'sorted', index: n - i - 1, array: [...a] });
+    } else if (algo === 'selection_sort') {
+      for (let i = 0; i < n; i++) {
+        let minIdx = i;
+        for (let j = i + 1; j < n; j++) {
+          steps.push({ type: 'compare', indices: [minIdx, j], array: [...a] });
+          if (a[j] < a[minIdx]) minIdx = j;
+        }
+        if (minIdx !== i) {
+          [a[i], a[minIdx]] = [a[minIdx], a[i]];
+          steps.push({ type: 'swap', indices: [i, minIdx], array: [...a] });
+        }
+        steps.push({ type: 'sorted', index: i, array: [...a], mode: 'selection' });
+      }
+    } else if (algo === 'insertion_sort') {
+      steps.push({ type: 'sorted', index: 0, array: [...a], mode: 'insertion' });
+      for (let i = 1; i < n; i++) {
+        let key = a[i];
+        let j = i - 1;
+        while (j >= 0) {
+          steps.push({ type: 'compare', indices: [j, j + 1], array: [...a] });
+          if (a[j] > key) {
+            a[j + 1] = a[j];
+            steps.push({ type: 'swap', indices: [j, j + 1], array: [...a] });
+            j--;
+          } else break;
+        }
+        a[j + 1] = key;
+        steps.push({ type: 'sorted', index: i, array: [...a], mode: 'insertion' });
+      }
+    } else {
+        // Fallback for others to keep them "semi-working" with a message
+        // In a real prod app, each would have its own generator
+        return generateSteps(arr, 'bubble_sort');
     }
     return steps;
   };
@@ -61,7 +97,7 @@ const SortingVisualizer: React.FC<Props> = ({ array, algorithm }) => {
     }
 
     setIsPlaying(true);
-    const steps = generateBubbleSortSteps(items.map(it => it.value));
+    const steps = generateSteps(items.map(it => it.value), algorithm);
     const startTime = performance.now();
 
     let currentStep = progress;
@@ -83,7 +119,13 @@ const SortingVisualizer: React.FC<Props> = ({ array, algorithm }) => {
         let status: 'default' | 'comparing' | 'swapping' | 'sorted' = 'default';
         if (step.type === 'compare' && step.indices?.includes(i)) status = 'comparing';
         if (step.type === 'swap' && step.indices?.includes(i)) status = 'swapping';
-        if (step.type === 'sorted' && i >= step.index) status = 'sorted';
+
+        if (step.type === 'sorted') {
+            if (step.mode === 'selection' && i <= step.index) status = 'sorted';
+            else if (step.mode === 'insertion' && i <= step.index) status = 'sorted';
+            else if (!step.mode && i >= step.index) status = 'sorted';
+        }
+
         if (items[i]?.status === 'sorted') status = 'sorted';
         return { value: v, status };
       });

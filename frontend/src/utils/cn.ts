@@ -6,7 +6,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatTime(ms: number) {
-  if (ms < 0.001) return "< 0.001ms";
+  if (ms === 0) return "0ms";
+  if (ms < 0.0001) return "< 0.0001ms";
+  if (ms < 0.01) return `${ms.toFixed(5)}ms`;
+  if (ms < 1) return `${ms.toFixed(4)}ms`;
   return `${ms.toFixed(3)}ms`;
 }
 
