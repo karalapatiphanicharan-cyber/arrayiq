@@ -49,7 +49,7 @@ const LoadingScreen = () => {
           transition={{ delay: 0.5 }}
           className="font-syne text-[10px] uppercase tracking-[0.4em] text-white/30"
         >
-          Analyzing Quantum States
+          Initializing Laboratory
         </motion.p>
       </div>
     </motion.div>

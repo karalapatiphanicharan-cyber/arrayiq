@@ -1,95 +1,95 @@
-import { useMemo } from 'react';
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Activity, PieChart } from 'lucide-react';
+import {
+  Activity,
+  Database,
+  BarChart3,
+  ArrowUpRight,
+  TrendingUp,
+  TrendingDown,
+  LayoutGrid,
+  Hash,
+  Binary
+} from 'lucide-react';
+import { cn } from '../../utils/cn';
 
 interface Props {
   array: any[];
 }
 
 const AdvancedArrayInsightsPanel: React.FC<Props> = ({ array }) => {
-  const stats = useMemo(() => {
-    if (!array || array.length === 0) return null;
-    const numeric = array.filter(x => typeof x === 'number') as number[];
-    const n = array.length;
+  const n = array.length;
+  const isNumeric = array.every(x => typeof x === 'number');
 
-    const frequencies = array.reduce((acc: any, val) => {
-      const key = String(val);
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
+  const stats = [
+    { label: 'Length', value: n, icon: Hash, color: 'text-primary' },
+    { label: 'Uniques', value: new Set(array).size, icon: Database, color: 'text-accent' },
+    { label: 'Type', value: typeof array[0] === 'number' ? 'Int/Float' : 'Mixed', icon: Binary, color: 'text-secondary' },
+    { label: 'Status', value: n === 0 ? 'Empty' : (array.every((v, i) => i === 0 || v >= array[i-1]) ? 'Sorted' : 'Unsorted'), icon: LayoutGrid, color: 'text-success' },
+  ];
 
-    const chartData = Object.entries(frequencies).map(([name, value]) => ({
-      name,
-      value: value as number
-    })).sort((a, b) => Number(a.name) - Number(b.name));
+  const getNumericalInsight = () => {
+    if (!isNumeric || n === 0) return null;
+    const sorted = [...array].sort((a, b) => a - b);
+    const min = sorted[0];
+    const max = sorted[n - 1];
+    const avg = array.reduce((a, b) => a + b, 0) / n;
+    return { min, max, avg };
+  };
 
-    if (numeric.length === 0) return { n, frequencies, chartData };
-
-    const sum = numeric.reduce((a, b) => a + b, 0);
-    const sorted = [...numeric].sort((a, b) => a - b);
-
-    return {
-      n,
-      min: Math.min(...numeric),
-      max: Math.max(...numeric),
-      sum,
-      avg: (sum / numeric.length).toFixed(2),
-      median: n % 2 === 0 ? (sorted[n/2 - 1] + sorted[n/2]) / 2 : sorted[Math.floor(n/2)],
-      duplicates: n - new Set(array).size,
-      chartData
-    };
-  }, [array]);
-
-  if (!stats) return null;
+  const numerical = getNumericalInsight();
 
   return (
-    <div className="glass-card p-8 rounded-3xl h-full space-y-8">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold font-syne flex items-center gap-2">
-          <Activity className="w-5 h-5 text-accent" /> Array Insights
-        </h3>
-        <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-md uppercase font-bold tracking-wider">Live</span>
-      </div>
+    <div className="glass-card p-6 md:p-8 rounded-[32px] h-full flex flex-col justify-between border border-white/5 shadow-2xl relative overflow-hidden group">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -mr-32 -mt-32 rounded-full" />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Size', value: stats.n },
-          { label: 'Min', value: stats.min ?? 'N/A' },
-          { label: 'Max', value: stats.max ?? 'N/A' },
-          { label: 'Avg', value: stats.avg ?? 'N/A' },
-          { label: 'Median', value: (stats as any).median ?? 'N/A' },
-          { label: 'Sum', value: (stats as any).sum ?? 'N/A' },
-          { label: 'Duplicates', value: (stats as any).duplicates },
-          { label: 'Distinct', value: stats.n - ((stats as any).duplicates || 0) },
-        ].map((item, i) => (
-          <div key={i} className="bg-white/5 p-4 rounded-2xl border border-white/5">
-            <p className="text-white/30 text-[10px] uppercase font-bold tracking-widest mb-1">{item.label}</p>
-            <p className="text-xl font-syne font-bold">{item.value}</p>
+      <div className="space-y-6 relative z-10">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h3 className="text-xl font-bold font-syne flex items-center gap-3 tracking-tight">
+              <Activity className="w-5 h-5 text-primary" /> Advanced DNA Analysis
+            </h3>
+            <p className="text-[10px] uppercase font-bold tracking-widest text-white/20">Real-time array heuristics</p>
           </div>
-        ))}
+          <BarChart3 className="w-5 h-5 text-white/10 group-hover:text-primary/40 transition-colors" />
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {stats.map((stat, i) => (
+            <div key={i} className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl space-y-2 group/stat hover:bg-white/[0.05] transition-all">
+              <div className="flex items-center justify-between">
+                <stat.icon className={cn("w-3.5 h-3.5", stat.color)} />
+                <div className="w-1 h-1 bg-white/10 rounded-full group-hover/stat:bg-white/40 transition-colors" />
+              </div>
+              <div>
+                <div className="text-[8px] uppercase font-bold text-white/20 tracking-widest">{stat.label}</div>
+                <div className="text-base font-bold font-syne truncate">{stat.value}</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 text-white/50 text-sm font-medium">
-          <PieChart className="w-4 h-4" /> Frequency Distribution
+      {numerical && (
+        <div className="mt-8 pt-6 border-t border-white/5 grid grid-cols-3 gap-6 relative z-10">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-[9px] uppercase font-bold text-white/20 tracking-widest">
+              <TrendingDown className="w-2.5 h-2.5 text-accent" /> Minimum
+            </div>
+            <div className="text-lg font-bold font-syne text-accent/80">{numerical.min}</div>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-[9px] uppercase font-bold text-white/20 tracking-widest">
+              <TrendingUp className="w-2.5 h-2.5 text-secondary" /> Maximum
+            </div>
+            <div className="text-lg font-bold font-syne text-secondary/80">{numerical.max}</div>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-[9px] uppercase font-bold text-white/20 tracking-widest">
+               <ArrowUpRight className="w-2.5 h-2.5 text-success" /> Mean Avg
+            </div>
+            <div className="text-lg font-bold font-syne text-success/80">{numerical.avg.toFixed(1)}</div>
+          </div>
         </div>
-        <div className="h-48 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={stats.chartData}>
-              <XAxis dataKey="name" hide />
-              <Tooltip
-                contentStyle={{ backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
-                itemStyle={{ color: '#00D9FF' }}
-              />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                {stats.chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={`rgba(0, 217, 255, ${Math.max(0.2, (entry.value as number) / Math.max(...stats.chartData.map(d => d.value as number)))})`} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

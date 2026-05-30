@@ -61,15 +61,27 @@ const Quantum = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
                 <button
                   onClick={() => runSimulation('grovers')}
-                  className="bg-secondary hover:bg-secondary/90 text-white py-4 rounded-2xl font-bold transition-all"
+                  className="bg-secondary hover:bg-secondary/90 text-white py-4 rounded-2xl font-bold transition-all text-xs"
                 >
-                  Run Grover's
+                  Grover's Search
+                </button>
+                <button
+                  onClick={() => runSimulation('amplitude_amplification')}
+                  className="bg-white/5 border border-white/10 hover:bg-white/10 text-white py-4 rounded-2xl font-bold transition-all text-xs"
+                >
+                  Amplitude Amp.
                 </button>
                 <button
                   onClick={() => runSimulation('quantum_walk')}
-                  className="bg-white/5 border border-white/10 hover:bg-white/10 text-white py-4 rounded-2xl font-bold transition-all"
+                  className="bg-white/5 border border-white/10 hover:bg-white/10 text-white py-4 rounded-2xl font-bold transition-all text-xs"
                 >
-                  Quantum Walk Search
+                  Quantum Walk
+                </button>
+                <button
+                  onClick={() => runSimulation('quantum_bitonic_sort')}
+                  className="bg-white/5 border border-white/10 hover:bg-white/10 text-white py-4 rounded-2xl font-bold transition-all text-xs"
+                >
+                  Bitonic Sort
                 </button>
               </div>
             </div>
@@ -97,13 +109,17 @@ const Quantum = () => {
 
                    <div className="grid grid-cols-2 gap-6">
                       <div className="bg-black/40 p-6 rounded-2xl border border-white/5 space-y-2">
-                        <p className="text-[10px] uppercase font-bold text-white/30">Classical Steps</p>
-                        <p className="text-3xl font-syne font-bold">{simulation.classical_steps}</p>
+                        <p className="text-[10px] uppercase font-bold text-white/30">Classical</p>
+                        <p className="text-2xl md:text-3xl font-syne font-bold">
+                          {simulation.classical_steps !== undefined ? simulation.classical_steps : 'O(n log n)'}
+                        </p>
                         <p className="text-[10px] text-white/20">{simulation.classical_complexity}</p>
                       </div>
                       <div className="bg-secondary/20 p-6 rounded-2xl border border-secondary/20 space-y-2">
-                        <p className="text-[10px] uppercase font-bold text-secondary/60">Quantum Steps</p>
-                        <p className="text-3xl font-syne font-bold text-secondary">{simulation.quantum_steps}</p>
+                        <p className="text-[10px] uppercase font-bold text-secondary/60">Quantum</p>
+                        <p className="text-2xl md:text-3xl font-syne font-bold text-secondary">
+                          {simulation.quantum_steps !== undefined ? simulation.quantum_steps : 'Simulated'}
+                        </p>
                         <p className="text-[10px] text-secondary/40">{simulation.quantum_complexity}</p>
                       </div>
                    </div>

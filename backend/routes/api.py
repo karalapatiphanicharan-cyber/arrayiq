@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from ..models.schemas import ArrayInput, SearchInput, AlgorithmResponse, Recommendation, ArrayAnalysis, BenchmarkResult, ComparisonInput
+from ..models.schemas import ArrayInput, SearchInput, QuantumSortInput, AlgorithmResponse, Recommendation, ArrayAnalysis, BenchmarkResult, ComparisonInput
 from ..algorithms.sorting import algorithms as sorting_algos
 from ..algorithms.searching import algorithms as searching_algos
 from ..algorithms.quantum import algorithms as quantum_algos
@@ -32,14 +32,18 @@ COMPLEXITIES = {
 
 def enrich_result(r: Dict[str, Any]) -> BenchmarkResult:
     best, avg, worst, space = COMPLEXITIES.get(r["name"], ("N/A", "N/A", "N/A", "N/A"))
-    # Deterministic mock memory based on space complexity to avoid placeholder values
-    mem = 1.2
-    if "O(n)" in space: mem = 12.5
-    elif "O(k)" in space: mem = 8.2
-    elif "O(log n)" in space: mem = 2.4
+
+    # Extract existing values from r to avoid multiple values error in BenchmarkResult constructor
+    # r contains 'memory' from the benchmark engine
+    mem = r.get("memory", 0.001)
+    mem = max(mem, 0.001)
+
+    # Create a new dict with only the keys BenchmarkResult expects
+    # and exclude 'memory' from the splat to pass it explicitly
+    data = {k: v for k, v in r.items() if k != 'memory'}
 
     return BenchmarkResult(
-        **r,
+        **data,
         memory=mem,
         best_case=best,
         avg_case=avg,
@@ -118,15 +122,18 @@ async def benchmark_searching(data: SearchInput):
     res = run_searching_benchmark(data.array, data.target)
     return [enrich_result(r) for r in res]
 
-@router.post("/quantum/{algorithm}")
-async def quantum_sim(algorithm: str, data: SearchInput):
-    if algorithm == "grovers":
-        return quantum_algos.grovers_simulation(data.array, data.target)
-    elif algorithm == "amplitude_amplification":
-        return quantum_algos.amplitude_amplification_simulation(data.array, data.target)
-    elif algorithm == "quantum_walk":
-        return quantum_algos.quantum_walk_search_simulation(data.array, data.target)
-    elif algorithm == "quantum_bitonic_sort":
-        return quantum_algos.quantum_bitonic_sort_simulation(data.array)
-    else:
-        raise HTTPException(status_code=404, detail="Quantum algorithm not found")
+@router.post("/quantum/grovers")
+async def quantum_grovers(data: SearchInput):
+    return quantum_algos.grovers_simulation(data.array, data.target)
+
+@router.post("/quantum/amplitude_amplification")
+async def quantum_amplitude(data: SearchInput):
+    return quantum_algos.amplitude_amplification_simulation(data.array, data.target)
+
+@router.post("/quantum/quantum_walk")
+async def quantum_walk(data: SearchInput):
+    return quantum_algos.quantum_walk_search_simulation(data.array, data.target)
+
+@router.post("/quantum/quantum_bitonic_sort")
+async def quantum_bitonic(data: QuantumSortInput):
+    return quantum_algos.quantum_bitonic_sort_simulation(data.array)
