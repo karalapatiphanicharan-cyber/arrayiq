@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Play, Pause, RotateCcw, Clock, Box, Activity, Layers,
-  ChevronRight, SkipForward, Info, Gauge
+  SkipForward, Info, Gauge
 } from 'lucide-react';
 import { cn, formatTime, formatNumber } from '../../utils/cn';
 
@@ -39,7 +39,7 @@ const SortingVisualizer: React.FC<Props> = ({ array, algorithm }) => {
   const [currentMessage, setCurrentMessage] = useState('Ready to analyze');
   const [steps, setSteps] = useState<Step[]>([]);
 
-  const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
+  const timeoutsRef = useRef<any[]>([]);
 
   useEffect(() => {
     const generatedSteps = generateSteps(array, algorithm);

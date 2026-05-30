@@ -186,3 +186,15 @@ INFO:     127.0.0.1:32804 - "POST /api/suitability/sorting HTTP/1.1" 200 OK
 INFO:     127.0.0.1:32790 - "POST /api/recommend/sorting HTTP/1.1" 200 OK
 INFO:     127.0.0.1:32804 - "POST /api/recommend/searching HTTP/1.1" 200 OK
 INFO:     127.0.0.1:32790 - "POST /api/suitability/sorting HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47450 - "OPTIONS /api/recommend/sorting HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47464 - "OPTIONS /api/recommend/searching HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47478 - "OPTIONS /api/suitability/sorting HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47486 - "OPTIONS /api/recommend/sorting HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47496 - "OPTIONS /api/recommend/searching HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47508 - "OPTIONS /api/suitability/sorting HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47450 - "POST /api/recommend/sorting HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47464 - "POST /api/recommend/searching HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47478 - "POST /api/suitability/sorting HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47486 - "POST /api/recommend/sorting HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47496 - "POST /api/recommend/searching HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47508 - "POST /api/suitability/sorting HTTP/1.1" 200 OK
