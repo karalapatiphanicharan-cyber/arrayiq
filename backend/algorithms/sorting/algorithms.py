@@ -1,6 +1,7 @@
 import time
+from typing import List, Tuple, Dict, Any
 
-def bubble_sort(arr):
+def bubble_sort(arr: List[int]) -> Tuple[List[int], float, int, int]:
     n = len(arr)
     swaps = 0
     comparisons = 0
@@ -17,7 +18,7 @@ def bubble_sort(arr):
     end_time = time.perf_counter()
     return arr_copy, (end_time - start_time) * 1000, comparisons, swaps
 
-def selection_sort(arr):
+def selection_sort(arr: List[int]) -> Tuple[List[int], float, int, int]:
     n = len(arr)
     swaps = 0
     comparisons = 0
@@ -37,7 +38,7 @@ def selection_sort(arr):
     end_time = time.perf_counter()
     return arr_copy, (end_time - start_time) * 1000, comparisons, swaps
 
-def insertion_sort(arr):
+def insertion_sort(arr: List[int]) -> Tuple[List[int], float, int, int]:
     n = len(arr)
     swaps = 0
     comparisons = 0
@@ -60,7 +61,7 @@ def insertion_sort(arr):
     end_time = time.perf_counter()
     return arr_copy, (end_time - start_time) * 1000, comparisons, swaps
 
-def merge_sort_wrapper(arr):
+def merge_sort_wrapper(arr: List[int]) -> Tuple[List[int], float, int, int]:
     metrics = {"comparisons": 0, "swaps": 0}
 
     def merge_sort(arr):
@@ -94,7 +95,7 @@ def merge_sort_wrapper(arr):
     end_time = time.perf_counter()
     return sorted_arr, (end_time - start_time) * 1000, metrics["comparisons"], metrics["swaps"]
 
-def quick_sort_wrapper(arr):
+def quick_sort_wrapper(arr: List[int]) -> Tuple[List[int], float, int, int]:
     metrics = {"comparisons": 0, "swaps": 0}
 
     def quick_sort(arr, low, high):
@@ -122,7 +123,7 @@ def quick_sort_wrapper(arr):
     end_time = time.perf_counter()
     return arr_copy, (end_time - start_time) * 1000, metrics["comparisons"], metrics["swaps"]
 
-def heap_sort(arr):
+def heap_sort(arr: List[int]) -> Tuple[List[int], float, int, int]:
     metrics = {"comparisons": 0, "swaps": 0}
 
     def heapify(arr, n, i):
@@ -159,7 +160,7 @@ def heap_sort(arr):
     end_time = time.perf_counter()
     return arr_copy, (end_time - start_time) * 1000, metrics["comparisons"], metrics["swaps"]
 
-def shell_sort(arr):
+def shell_sort(arr: List[int]) -> Tuple[List[int], float, int, int]:
     n = len(arr)
     gap = n // 2
     comparisons = 0
@@ -185,7 +186,7 @@ def shell_sort(arr):
     end_time = time.perf_counter()
     return arr_copy, (end_time - start_time) * 1000, comparisons, swaps
 
-def counting_sort(arr):
+def counting_sort(arr: List[int]) -> Tuple[List[int], float, int, int]:
     if not arr: return arr, 0, 0, 0
     start_time = time.perf_counter()
     max_val = int(max(arr))
@@ -209,7 +210,7 @@ def counting_sort(arr):
     end_time = time.perf_counter()
     return output, (end_time - start_time) * 1000, 0, swaps
 
-def radix_sort(arr):
+def radix_sort(arr: List[int]) -> Tuple[List[int], float, int, int]:
     if not arr: return arr, 0, 0, 0
     start_time = time.perf_counter()
     arr_copy = [int(x) for x in arr]
@@ -240,7 +241,7 @@ def radix_sort(arr):
     end_time = time.perf_counter()
     return arr_copy, (end_time - start_time) * 1000, 0, swaps
 
-def bucket_sort(arr):
+def bucket_sort(arr: List[int]) -> Tuple[List[int], float, int, int]:
     if not arr: return arr, 0, 0, 0
     start_time = time.perf_counter()
     arr_copy = list(arr)
@@ -274,7 +275,7 @@ def bucket_sort(arr):
     end_time = time.perf_counter()
     return arr_copy, (end_time - start_time) * 1000, comparisons, swaps
 
-def tim_sort(arr):
+def tim_sort(arr: List[int]) -> Tuple[List[int], float, int, int]:
     start_time = time.perf_counter()
     arr_copy = list(arr)
     arr_copy.sort()

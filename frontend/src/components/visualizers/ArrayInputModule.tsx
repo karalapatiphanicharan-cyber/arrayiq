@@ -1,102 +1,118 @@
 import { useState } from 'react';
-import { Shuffle, RotateCcw, Trash2, Database } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Keyboard,
+  RefreshCcw,
+  Trash2,
+  Database,
+  ChevronDown,
+  Settings2,
+  Sparkles,
+  Check
+} from 'lucide-react';
+import { cn } from '../../utils/cn';
 
-interface ArrayInputModuleProps {
-  onArrayChange: (newArray: any[]) => void;
-  initialArray?: any[];
+interface Props {
+  onArrayChange: (arr: number[]) => void;
+  initialArray: number[];
 }
 
-const ArrayInputModule: React.FC<ArrayInputModuleProps> = ({ onArrayChange, initialArray = [8, 2, 5, 1, 9, 4] }) => {
-  const [inputValue, setInputValue] = useState(initialArray.join(', '));
-  const [arraySize, setArraySize] = useState(10);
+const ArrayInputModule: React.FC<Props> = ({ onArrayChange, initialArray }) => {
+  const [input, setInput] = useState(initialArray.join(', '));
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
-  const handleManualInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-    try {
-      const parsed = e.target.value.split(',').map(s => {
-        const trimmed = s.trim();
-        if (!trimmed) return null;
-        const num = Number(trimmed);
-        return isNaN(num) ? trimmed : num;
-      }).filter(v => v !== null);
-      onArrayChange(parsed);
-    } catch (err) {}
+  const handleManualChange = (val: string) => {
+    setInput(val);
+    const parsed = val.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v));
+    onArrayChange(parsed);
   };
 
-  const generateRandom = (size: number = arraySize) => {
-    const newArr = Array.from({ length: size }, () => Math.floor(Math.random() * 100));
-    setInputValue(newArr.join(', '));
-    onArrayChange(newArr);
+  const generateRandom = (size: number, range = 100) => {
+    const arr = Array.from({ length: size }, () => Math.floor(Math.random() * range));
+    updateArray(arr);
   };
 
-  const loadSample = (type: string) => {
-    let sample: any[] = [];
-    switch (type) {
-      case 'sorted': sample = [1, 5, 12, 24, 38, 45, 52, 67, 71, 89]; break;
-      case 'reverse': sample = [90, 81, 72, 63, 54, 45, 36, 27, 18, 9]; break;
-      case 'nearly': sample = [2, 1, 3, 4, 6, 5, 7, 8, 10, 9]; break;
-      case 'duplicates': sample = [5, 2, 5, 8, 2, 9, 1, 5, 4, 8]; break;
-      default: sample = [8, 2, 5, 1, 9, 4];
-    }
-    setInputValue(sample.join(', '));
-    onArrayChange(sample);
+  const generateSorted = (size: number) => {
+    const arr = Array.from({ length: size }, (_, i) => i + 1);
+    updateArray(arr);
+  };
+
+  const updateArray = (arr: number[]) => {
+    setInput(arr.join(', '));
+    onArrayChange(arr);
+    setIsOptionsOpen(false);
   };
 
   return (
-    <div className="glass-card p-8 rounded-3xl space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold font-syne flex items-center gap-2">
-          <Database className="w-5 h-5 text-primary" /> Array Input
-        </h3>
-        <div className="flex gap-2">
-          <button onClick={() => setInputValue('')} className="p-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-red-400 transition-colors">
-            <Trash2 className="w-4 h-4" />
-          </button>
+    <div className="glass-card p-6 md:p-8 rounded-[32px] h-full flex flex-col space-y-6 border border-white/5 shadow-2xl relative overflow-hidden group">
+      <div className="absolute top-0 left-0 w-32 h-32 bg-accent/5 blur-[60px] -ml-16 -mt-16 rounded-full" />
+
+      <div className="flex items-center justify-between relative z-10">
+        <div className="space-y-1">
+          <h3 className="text-xl font-bold font-syne flex items-center gap-3 tracking-tight">
+            <Database className="w-5 h-5 text-accent" /> Dataset Factory
+          </h3>
+          <p className="text-[10px] uppercase font-bold tracking-widest text-white/20">Source material configuration</p>
+        </div>
+        <div className="flex items-center gap-2">
+            <button
+                onClick={() => setInput('')}
+                className="p-2 hover:bg-white/5 rounded-lg text-white/20 hover:text-red-400 transition-all"
+                title="Clear Data"
+            >
+                <Trash2 className="w-4 h-4" />
+            </button>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 relative z-10 flex-grow">
+        <div className="relative group/input">
+            <div className="absolute left-4 top-4 text-accent/40 group-focus-within/input:text-accent transition-colors">
+                <Keyboard className="w-4 h-4" />
+            </div>
+            <textarea
+                value={input}
+                onChange={(e) => handleManualChange(e.target.value)}
+                placeholder="Enter numbers separated by commas (e.g. 5, 2, 9)..."
+                className="w-full bg-white/[0.03] border border-white/10 rounded-[20px] pl-11 pr-4 py-4 min-h-[120px] text-sm font-medium focus:outline-none focus:border-accent/50 focus:bg-white/[0.05] transition-all resize-none custom-scrollbar"
+            />
+        </div>
+
         <div className="relative">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={handleManualInput}
-            placeholder="Enter values separated by commas (e.g. 8, 2, 5, 1)"
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50 transition-colors"
-          />
-        </div>
+            <button
+                onClick={() => setIsOptionsOpen(!isOptionsOpen)}
+                className="w-full bg-white/5 hover:bg-white/10 border border-white/5 p-3 rounded-xl flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-white/40 transition-all group/btn"
+            >
+                <div className="flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-accent" />
+                    Quick Generate
+                </div>
+                <ChevronDown className={cn("w-4 h-4 transition-transform duration-300", isOptionsOpen && "rotate-180")} />
+            </button>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <button onClick={() => generateRandom()} className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 py-2 rounded-lg text-xs font-medium transition-colors">
-            <Shuffle className="w-3 h-3" /> Random
-          </button>
-          <button onClick={() => loadSample('sorted')} className="bg-white/5 hover:bg-white/10 py-2 rounded-lg text-xs font-medium transition-colors">
-             Sorted
-          </button>
-          <button onClick={() => loadSample('nearly')} className="bg-white/5 hover:bg-white/10 py-2 rounded-lg text-xs font-medium transition-colors">
-             Nearly Sorted
-          </button>
-          <button onClick={() => loadSample('duplicates')} className="bg-white/5 hover:bg-white/10 py-2 rounded-lg text-xs font-medium transition-colors">
-             Duplicates
-          </button>
-        </div>
-
-        <div className="flex items-center gap-4 pt-2">
-          <span className="text-xs text-white/40 whitespace-nowrap">Size: {arraySize}</span>
-          <input
-            type="range"
-            min="5"
-            max="100"
-            value={arraySize}
-            onChange={(e) => setArraySize(Number(e.target.value))}
-            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
-          />
-          <button
-            onClick={() => generateRandom(arraySize)}
-            className="p-2 bg-primary/20 text-primary hover:bg-primary/30 rounded-lg transition-colors"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
+            <AnimatePresence>
+                {isOptionsOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute bottom-full mb-2 left-0 w-full bg-[#111] border border-white/10 rounded-2xl p-2 z-50 shadow-2xl backdrop-blur-xl grid grid-cols-2 gap-1"
+                    >
+                        <button onClick={() => generateRandom(10)} className="flex items-center gap-2 p-3 hover:bg-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white/60">
+                            <RefreshCcw className="w-3 h-3" /> Random 10
+                        </button>
+                        <button onClick={() => generateRandom(50)} className="flex items-center gap-2 p-3 hover:bg-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white/60">
+                            <RefreshCcw className="w-3 h-3" /> Random 50
+                        </button>
+                        <button onClick={() => generateSorted(20)} className="flex items-center gap-2 p-3 hover:bg-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white/60">
+                            <Check className="w-3 h-3" /> Sorted 20
+                        </button>
+                        <button onClick={() => generateRandom(100, 1000)} className="flex items-center gap-2 p-3 hover:bg-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white/60">
+                            <Settings2 className="w-3 h-3" /> Large Range
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
       </div>
     </div>

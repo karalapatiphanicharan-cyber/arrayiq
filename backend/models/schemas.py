@@ -1,35 +1,29 @@
 from pydantic import BaseModel
-from typing import List, Optional, Any, Union
+from typing import List, Any, Optional
 
 class ArrayInput(BaseModel):
-    array: List[Union[int, float, str]]
+    array: List[Any]
 
-class SearchInput(ArrayInput):
-    target: Union[int, float, str]
+class SearchInput(BaseModel):
+    array: List[Any]
+    target: Optional[Any] = None
 
-class ComparisonInput(ArrayInput):
+class QuantumSortInput(BaseModel):
+    array: List[Any]
+
+class ComparisonInput(BaseModel):
+    array: List[Any]
+    target: Optional[Any] = None
     algorithms: List[str]
-    target: Optional[Union[int, float, str]] = None
 
 class AlgorithmResponse(BaseModel):
     sorted_array: Optional[List[Any]] = None
+    found_index: Optional[int] = None
     runtime: float
     comparisons: int
     swaps: Optional[int] = None
-    found_index: Optional[int] = None
     time_complexity: str
     space_complexity: str
-
-class BenchmarkResult(BaseModel):
-    name: str
-    runtime: float
-    comparisons: int
-    swaps: Optional[int] = None
-    found_index: Optional[int] = None
-    memory: float
-    best_case: str
-    avg_case: str
-    worst_case: str
 
 class Recommendation(BaseModel):
     name: str
@@ -38,12 +32,25 @@ class Recommendation(BaseModel):
 
 class ArrayAnalysis(BaseModel):
     size: int
-    min: Optional[Any] = None
-    max: Optional[Any] = None
+    is_sorted: bool
+    duplicates: int
+    is_numeric: bool
+    is_integer: bool
+    min: Optional[float] = None
+    max: Optional[float] = None
+    sum: Optional[float] = None
     avg: Optional[float] = None
     median: Optional[float] = None
     mode: Optional[List[Any]] = None
-    duplicates: int
-    is_sorted: bool
     nearly_sorted: Optional[bool] = None
-    is_numeric: bool
+
+class BenchmarkResult(BaseModel):
+    name: str
+    runtime: float
+    comparisons: int
+    swaps: Optional[int] = None
+    memory: float
+    best_case: str
+    avg_case: str
+    worst_case: str
+    found_index: Optional[int] = None

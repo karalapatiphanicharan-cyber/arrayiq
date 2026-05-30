@@ -6,15 +6,14 @@ const Navbar = () => {
   const location = useLocation();
 
   const navLinks = [
-    { name: 'Features', href: '/#features' },
-    { name: 'Algorithms', href: '/sorting' },
-    { name: 'Benchmarking', href: '/benchmark' },
-    { name: 'Quantum', href: '/quantum' },
+    { name: 'Analysis Lab', href: '/sorting' },
+    { name: 'Quantum Space', href: '/quantum' },
+    { name: 'Our Vision', href: '/about' },
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center p-8">
-      <div className="glass px-10 py-4 rounded-[24px] flex items-center gap-16 max-w-7xl w-full justify-between shadow-2xl">
+    <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4 md:p-8">
+      <div className="glass px-6 md:px-10 py-4 rounded-[24px] flex items-center gap-16 max-w-7xl w-full justify-between shadow-2xl">
         <Link to="/" className="flex items-center gap-3 group shrink-0">
           <img src={logo} alt="ArrayIQ Logo" className="h-10 w-auto transition-all duration-500 group-hover:scale-110 group-hover:rotate-6" />
           <span className="font-syne font-bold text-2xl tracking-tighter">ArrayIQ</span>

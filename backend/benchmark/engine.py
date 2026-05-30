@@ -1,4 +1,5 @@
 import time
+import tracemalloc
 from ..algorithms.sorting.algorithms import *
 from ..algorithms.searching.algorithms import *
 
@@ -24,32 +25,36 @@ def run_sorting_benchmark(arr, iterations=5):
             if len(arr) > 5000 and name in ["Bubble Sort", "Selection Sort"]:
                 continue
 
+            # Memory measurement
+            tracemalloc.start()
+
             total_time = 0
-            total_comps = 0
-            total_swaps = 0
+            # Execute multiple iterations for high-precision averaging
+            # We don't include the first "warmup" run in the time, but we use it for metrics
+            _, _, r_comps, r_swaps = func(list(arr))
 
-            # Execute first run to warm up and get comps/swaps
-            _, r_time, r_comps, r_swaps = func(list(arr))
-            total_time += r_time
-            total_comps = r_comps
-            total_swaps = r_swaps
+            for _ in range(iterations):
+                start = time.perf_counter()
+                func(list(arr))
+                total_time += (time.perf_counter() - start)
 
-            for _ in range(iterations - 1):
-                _, r_time, _, _ = func(list(arr))
-                total_time += r_time
+            current, peak = tracemalloc.get_traced_memory()
+            tracemalloc.stop()
 
-            avg_runtime = total_time / iterations
+            avg_runtime = (total_time / iterations) * 1000 # convert to ms
 
             results.append({
                 "name": name,
                 "runtime": avg_runtime,
-                "comparisons": total_comps,
-                "swaps": total_swaps
+                "comparisons": r_comps,
+                "swaps": r_swaps,
+                "memory": peak / 1024 / 1024 # MB
             })
         except Exception as e:
             print(f"Error benchmarking {name}: {e}")
+            if tracemalloc.is_tracing():
+                tracemalloc.stop()
 
-    # Strictly rank by runtime
     return sorted(results, key=lambda x: x["runtime"])
 
 def run_searching_benchmark(arr, target, iterations=5):
@@ -70,26 +75,28 @@ def run_searching_benchmark(arr, target, iterations=5):
             if name != "Linear Search" and not is_sorted:
                 continue
 
+            tracemalloc.start()
             total_time = 0
-            total_comps = 0
-            found_idx = -1
+            found_idx, _, r_comps = func(arr, target)
 
-            _, r_time, r_comps = func(arr, target)
-            total_time += r_time
-            total_comps = r_comps
+            for _ in range(iterations):
+                start = time.perf_counter()
+                func(arr, target)
+                total_time += (time.perf_counter() - start)
 
-            for _ in range(iterations - 1):
-                idx, r_time, _ = func(arr, target)
-                total_time += r_time
-                found_idx = idx
+            current, peak = tracemalloc.get_traced_memory()
+            tracemalloc.stop()
 
             results.append({
                 "name": name,
-                "runtime": total_time / iterations,
-                "comparisons": total_comps,
-                "found_index": found_idx
+                "runtime": (total_time / iterations) * 1000,
+                "comparisons": r_comps,
+                "found_index": found_idx,
+                "memory": peak / 1024 / 1024 # MB
             })
         except Exception as e:
             print(f"Error benchmarking {name}: {e}")
+            if tracemalloc.is_tracing():
+                tracemalloc.stop()
 
     return sorted(results, key=lambda x: x["runtime"])

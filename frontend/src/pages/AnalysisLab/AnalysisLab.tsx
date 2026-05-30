@@ -11,7 +11,18 @@ import EducationalSection from '../../components/common/EducationalSection';
 import BenchmarkDashboard from '../../components/charts/BenchmarkDashboard';
 import WarningPopup from '../../components/common/WarningPopup';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Layers, Columns, Play, Download, ChevronDown, Check } from 'lucide-react';
+import {
+    Search,
+    Layers,
+    Columns,
+    Play,
+    Download,
+    Check,
+    X,
+    Filter,
+    BarChart3,
+    RefreshCcw
+} from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { API_BASE_URL } from '../../constants';
 
@@ -53,6 +64,7 @@ const AnalysisLab = () => {
     const [loading, setLoading] = useState(false);
     const [isWarningOpen, setIsWarningOpen] = useState(false);
     const [pendingAlgo, setPendingAlgo] = useState<any>(null);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         refreshAnalysis();
@@ -94,6 +106,16 @@ const AnalysisLab = () => {
         }
     };
 
+    const exportJSON = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(benchmarkResults, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "arrayiq_telemetry.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    };
+
     const handleAlgoSelect = (algo: any) => {
         if (activeTab === 'compare') {
             setSelectedCompareAlgos(prev =>
@@ -102,7 +124,7 @@ const AnalysisLab = () => {
             return;
         }
 
-        const isSorted = [...array].sort((a,b) => a-b).every((v,i) => v === array[i]);
+        const isSorted = array.length > 0 && array.every((v, i) => i === 0 || v >= array[i - 1]);
         if (activeTab === 'search' && algo.id !== 'linear_search' && !isSorted) {
             setPendingAlgo(algo);
             setIsWarningOpen(true);
@@ -110,6 +132,7 @@ const AnalysisLab = () => {
             if (activeTab === 'sort') setSelectedSort(algo);
             else setSelectedSearch(algo);
         }
+        setIsMobileMenuOpen(false);
     };
 
     const handleSortAndContinue = () => {
@@ -122,16 +145,11 @@ const AnalysisLab = () => {
     const tabs = [
         { id: 'sort', label: 'Sorting Lab', icon: Layers },
         { id: 'search', label: 'Search Lab', icon: Search },
-        { id: 'compare', label: 'Compare Mode', icon: Columns },
+        { id: 'compare', label: 'Compare Mode', icon: BarChart3 },
     ];
 
-    const quickNav = [
-        { label: 'Input', id: 'input-section' },
-        { label: 'Recommendations', id: 'rec-section' },
-        { label: 'Laboratory', id: 'lab-section' },
-        { label: 'Results', id: 'results-section' },
-        { label: 'Educational', id: 'edu-section' },
-    ];
+    const currentAlgorithms = (activeTab === 'search' ? SEARCH_ALGORITHMS : (activeTab === 'compare' ? (compareType === 'sorting' ? SORT_ALGORITHMS : SEARCH_ALGORITHMS) : SORT_ALGORITHMS));
+    const activeAlgo = activeTab === 'sort' ? selectedSort : selectedSearch;
 
     return (
         <PageWrapper>
@@ -142,159 +160,216 @@ const AnalysisLab = () => {
                 onCancel={() => setIsWarningOpen(false)}
             />
 
-            <div className="fixed left-12 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-6 z-40">
-                {quickNav.map(nav => (
-                    <button key={nav.id} onClick={() => document.getElementById(nav.id)?.scrollIntoView({ behavior: 'smooth' })} className="group flex items-center gap-4 text-left">
-                        <div className="w-1 h-8 bg-white/5 rounded-full group-hover:bg-primary transition-colors" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/20 group-hover:text-white transition-colors">{nav.label}</span>
-                    </button>
-                ))}
-            </div>
-
-            <div className="space-y-12 pb-32">
-                <div id="input-section" className="grid lg:grid-cols-12 gap-6 scroll-mt-32">
-                    <div className="lg:col-span-4">
+            <div className="space-y-8 md:space-y-12 pb-32 max-w-[1400px] mx-auto px-4 md:px-0">
+                {/* Header Section */}
+                <div id="input-section" className="grid grid-cols-1 lg:grid-cols-12 gap-6 scroll-mt-32">
+                    <div className="lg:col-span-4 h-full">
                         <ArrayInputModule onArrayChange={setArray} initialArray={array} />
                     </div>
-                    <div className="lg:col-span-8">
+                    <div className="lg:col-span-8 h-full">
                         <AdvancedArrayInsightsPanel array={array} />
                     </div>
                 </div>
 
-                <div id="rec-section" className="grid md:grid-cols-2 gap-6 scroll-mt-32">
+                {/* Recommendations */}
+                <div id="rec-section" className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 scroll-mt-32">
                     <RecommendationCard recommendation={searchRec} type="search" />
                     <RecommendationCard recommendation={sortRec} type="sort" />
                 </div>
 
-                <div id="lab-section" className="sticky top-28 z-40 flex justify-center scroll-mt-32">
-                    <div className="glass p-2 rounded-[24px] flex gap-2 shadow-2xl border border-white/10">
-                        {tabs.map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => { setActiveTab(tab.id as any); setBenchmarkResults([]); setSelectedCompareAlgos([]); }}
-                                className={cn(
-                                    "flex items-center gap-3 px-10 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all",
-                                    activeTab === tab.id ? "bg-white text-black shadow-xl scale-105" : "text-white/40 hover:bg-white/5 hover:text-white"
-                                )}
-                            >
-                                <tab.icon className="w-4 h-4" /> {tab.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                {/* Tab Switcher & Lab Container */}
+                <div id="lab-section" className="space-y-8 scroll-mt-32">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/[0.02] p-2 rounded-[28px] border border-white/5 shadow-2xl">
+                        <div className="flex w-full md:w-auto p-1 bg-black/40 rounded-2xl border border-white/5">
+                            {tabs.map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => { setActiveTab(tab.id as any); setBenchmarkResults([]); setSelectedCompareAlgos([]); }}
+                                    className={cn(
+                                        "flex-grow md:flex-none flex items-center justify-center gap-2 px-4 md:px-8 py-3 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all",
+                                        activeTab === tab.id ? "bg-white text-black shadow-xl" : "text-white/40 hover:text-white"
+                                    )}
+                                >
+                                    <tab.icon className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">{tab.label}</span>
+                                    <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                                </button>
+                            ))}
+                        </div>
 
-                <div className="grid lg:grid-cols-12 gap-10 pt-8">
-                    <div className="lg:col-span-3 space-y-6">
-                        <div className="glass-card p-8 rounded-[32px] space-y-8">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-xl font-bold font-syne flex items-center gap-3">
-                                    <Play className="w-5 h-5 text-primary" />
-                                    {activeTab === 'compare' ? 'Select Multi' : 'Controls'}
-                                </h3>
-                                <ChevronDown className="w-4 h-4 text-white/20" />
-                            </div>
-
+                        <div className="flex items-center gap-4 w-full md:w-auto">
                             {activeTab === 'compare' && (
-                                <div className="flex bg-white/5 p-1 rounded-xl">
+                                <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 w-full md:w-auto">
                                     <button
                                         onClick={() => { setCompareType('sorting'); setSelectedCompareAlgos([]); }}
-                                        className={cn("flex-grow py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all", compareType === 'sorting' ? "bg-primary text-white" : "text-white/40")}
+                                        className={cn("px-6 py-2.5 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all", compareType === 'sorting' ? "bg-primary text-white" : "text-white/20")}
                                     >Sort</button>
                                     <button
                                         onClick={() => { setCompareType('searching'); setSelectedCompareAlgos([]); }}
-                                        className={cn("flex-grow py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all", compareType === 'searching' ? "bg-accent text-black" : "text-white/40")}
+                                        className={cn("px-6 py-2.5 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all", compareType === 'searching' ? "bg-accent text-black" : "text-white/20")}
                                     >Search</button>
                                 </div>
                             )}
 
-                            {(activeTab === 'search' || (activeTab === 'compare' && compareType === 'searching')) && (
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-white/30 px-1">Target Identity</label>
-                                    <input
-                                        type="number"
-                                        value={target}
-                                        onChange={(e) => setTarget(Number(e.target.value))}
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-lg font-syne font-bold focus:outline-none focus:border-accent transition-all focus:bg-white/[0.08]"
-                                    />
-                                </div>
-                            )}
-
-                            <div className="grid gap-3">
-                                {(activeTab === 'search' ? SEARCH_ALGORITHMS : (activeTab === 'compare' ? (compareType === 'sorting' ? SORT_ALGORITHMS : SEARCH_ALGORITHMS) : SORT_ALGORITHMS)).map(algo => (
-                                    <button
-                                        key={algo.id}
-                                        onClick={() => handleAlgoSelect(algo)}
-                                        className={cn(
-                                            "text-left p-4 rounded-2xl border transition-all relative group overflow-hidden flex justify-between items-center",
-                                            activeTab === 'compare'
-                                                ? (selectedCompareAlgos.includes(algo.name) ? "bg-primary/20 border-primary text-primary" : "bg-white/5 border-white/5")
-                                                : ((activeTab === 'sort' ? selectedSort.id : selectedSearch.id) === algo.id ? "bg-primary text-white border-primary shadow-lg" : "bg-white/5 border-white/5 hover:border-white/20")
-                                        )}
-                                    >
-                                        <div className="relative z-10">
-                                            <div className="font-bold text-sm mb-1">{algo.name}</div>
-                                            <div className={cn("text-[9px] uppercase font-bold tracking-widest", (activeTab === 'sort' ? selectedSort.id : selectedSearch.id) === algo.id ? "text-white/60" : "opacity-30")}>
-                                                {algo.tc}
-                                            </div>
-                                        </div>
-                                        {activeTab === 'compare' && selectedCompareAlgos.includes(algo.name) && <Check className="w-4 h-4" />}
-                                    </button>
-                                ))}
-                            </div>
+                            <button
+                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                                className="md:hidden ml-auto p-3 bg-white/5 rounded-xl border border-white/10"
+                            >
+                                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Filter className="w-5 h-5" />}
+                            </button>
                         </div>
-
-                        <SuitabilityPanel algorithms={suitability} />
                     </div>
 
-                    <div className="lg:col-span-9 space-y-10">
-                        {activeTab !== 'compare' ? (
-                            <div className="space-y-10">
-                                <motion.div key={activeTab + (activeTab === 'sort' ? selectedSort.id : selectedSearch.id)} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
-                                    {activeTab === 'sort' ? <SortingVisualizer array={array} algorithm={selectedSort.id} /> : <SearchVisualizer array={array} target={target} algorithm={selectedSearch.id} />}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
+                        {/* Control Sidebar (Desktop) / Mobile Drawer */}
+                        <div className={cn(
+                            "lg:col-span-3 space-y-6 transition-all duration-300",
+                            isMobileMenuOpen ? "fixed inset-0 z-[100] bg-black/95 p-8 overflow-y-auto" : "hidden lg:block"
+                        )}>
+                            <div className="flex items-center justify-between lg:hidden mb-8">
+                                <h3 className="text-xl font-bold font-syne">Selection Hub</h3>
+                                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2"><X /></button>
+                            </div>
+
+                            <div className="glass-card p-6 rounded-[24px] space-y-6 border border-white/5">
+                                <div className="space-y-1">
+                                    <h4 className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/30">Configuration</h4>
+                                    <div className="text-sm font-bold font-syne">Laboratory Parameters</div>
+                                </div>
+
+                                {(activeTab === 'search' || (activeTab === 'compare' && compareType === 'searching')) && (
+                                    <div className="space-y-3">
+                                        <label className="text-[9px] font-bold uppercase tracking-widest text-white/20 ml-1">Search Target</label>
+                                        <input
+                                            type="number"
+                                            value={target}
+                                            onChange={(e) => setTarget(Number(e.target.value))}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-lg font-bold focus:outline-none focus:border-accent transition-all"
+                                        />
+                                    </div>
+                                )}
+
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-bold uppercase tracking-widest text-white/20 ml-1">
+                                        {activeTab === 'compare' ? 'Select Multi' : 'Algorithm'}
+                                    </label>
+                                    <div className="grid gap-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {currentAlgorithms.map(algo => (
+                                            <button
+                                                key={algo.id}
+                                                onClick={() => handleAlgoSelect(algo)}
+                                                className={cn(
+                                                    "text-left p-4 rounded-xl border transition-all flex justify-between items-center group",
+                                                    activeTab === 'compare'
+                                                        ? (selectedCompareAlgos.includes(algo.name) ? "bg-primary/20 border-primary/50 text-primary" : "bg-white/5 border-white/5 hover:border-white/10")
+                                                        : (activeAlgo.id === algo.id ? "bg-primary text-white border-primary shadow-[0_0_20px_rgba(0,102,255,0.2)]" : "bg-white/5 border-white/5 hover:border-white/20")
+                                                )}
+                                            >
+                                                <div className="space-y-1">
+                                                    <div className="font-bold text-xs">{algo.name}</div>
+                                                    <div className={cn("text-[8px] uppercase font-bold tracking-widest", activeAlgo.id === algo.id ? "text-white/60" : "text-white/20")}>
+                                                        {algo.tc}
+                                                    </div>
+                                                </div>
+                                                {activeTab === 'compare' && selectedCompareAlgos.includes(algo.name) && (
+                                                    <div className="bg-primary p-1 rounded-md"><Check className="w-3 h-3 text-white" /></div>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <SuitabilityPanel algorithms={suitability} />
+                        </div>
+
+                        {/* Main Lab Area */}
+                        <div className="lg:col-span-9 space-y-8 min-h-[500px]">
+                            {activeTab !== 'compare' ? (
+                                <motion.div
+                                    key={activeTab + activeAlgo.id}
+                                    initial={{ opacity: 0, scale: 0.98 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.4 }}
+                                    className="h-full"
+                                >
+                                    {activeTab === 'sort' ? (
+                                        <SortingVisualizer array={array} algorithm={activeAlgo.id} />
+                                    ) : (
+                                        <SearchVisualizer array={array} target={target} algorithm={activeAlgo.id} />
+                                    )}
                                 </motion.div>
-                            </div>
-                        ) : (
-                            <div className="glass-card p-16 rounded-[48px] h-full min-h-[600px] flex flex-col items-center justify-center text-center space-y-10 relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 -z-10" />
-                                <div className="bg-primary/20 p-10 rounded-[32px] glow-primary border border-primary/20">
-                                    <Columns className="w-20 h-20 text-primary" />
+                            ) : (
+                                <div className="glass-card p-8 md:p-16 rounded-[32px] md:rounded-[48px] h-full flex flex-col items-center justify-center text-center space-y-8 relative overflow-hidden border border-white/5">
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,102,255,0.08),transparent_70%)]" />
+                                    <div className="relative z-10 space-y-8 max-w-xl">
+                                        <div className="inline-flex p-6 rounded-[32px] bg-primary/10 border border-primary/20 shadow-inner">
+                                            <Columns className="w-12 h-12 text-primary" />
+                                        </div>
+                                        <div className="space-y-4">
+                                            <h3 className="text-3xl md:text-5xl font-syne font-extrabold tracking-tight">Differential Benchmarking</h3>
+                                            <p className="text-white/40 text-base md:text-lg font-medium leading-relaxed px-4">
+                                                Analyze performance deltas across multiple algorithm signatures in real-time.
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-col items-center gap-4">
+                                            <button
+                                                onClick={runBenchmark}
+                                                disabled={loading || selectedCompareAlgos.length === 0}
+                                                className="group relative bg-white text-black hover:bg-primary hover:text-white px-10 py-5 rounded-[22px] font-bold text-base flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-2xl disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                {loading ? (
+                                                    <span className="flex items-center gap-2">
+                                                        <RefreshCcw className="w-5 h-5 animate-spin" /> Calculating Latency...
+                                                    </span>
+                                                ) : (
+                                                    <><Play className="w-5 h-5 fill-current" /> Initialize Comparison</>
+                                                )}
+                                            </button>
+                                            <AnimatePresence>
+                                                {selectedCompareAlgos.length === 0 && (
+                                                    <motion.p
+                                                        initial={{ opacity: 0 }}
+                                                        animate={{ opacity: 1 }}
+                                                        className="text-[9px] font-bold uppercase tracking-widest text-primary/60 animate-pulse"
+                                                    >
+                                                        Select 2+ candidates to begin analysis
+                                                    </motion.p>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="space-y-4 max-w-xl">
-                                    <h3 className="text-5xl font-syne font-extrabold tracking-tight">Enterprise Comparison</h3>
-                                    <p className="text-white/40 text-xl font-medium leading-relaxed">
-                                        Select multiple algorithms from the sidebar and click the button below to see a detailed side-by-side performance breakdown.
-                                    </p>
-                                </div>
-                                <div className="flex flex-col items-center gap-4">
-                                    <button
-                                        onClick={runBenchmark}
-                                        disabled={loading || selectedCompareAlgos.length === 0}
-                                        className="bg-white text-black hover:bg-primary hover:text-white px-12 py-6 rounded-[24px] font-bold text-lg flex items-center gap-4 transition-all hover:scale-105 active:scale-95 shadow-2xl disabled:opacity-30 disabled:cursor-not-allowed"
-                                    >
-                                        {loading ? 'Analyzing Latency...' : <><Play className="w-6 h-6 fill-current" /> Run Lab Benchmarking</>}
-                                    </button>
-                                    {selectedCompareAlgos.length === 0 && <p className="text-[10px] font-bold uppercase tracking-widest text-primary animate-pulse">Select at least one algorithm to begin</p>}
-                                </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
 
+                {/* Results Visualizations */}
                 <div id="results-section" className="scroll-mt-32 pt-10">
                     <AnimatePresence>
                         {benchmarkResults.length > 0 && (
-                            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
-                                <div className="flex flex-col md:flex-row justify-between items-end gap-8">
+                            <motion.div
+                                initial={{ opacity: 0, y: 40 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-12"
+                            >
+                                <div className="flex flex-col md:flex-row justify-between items-end gap-8 border-b border-white/5 pb-8">
                                     <div className="space-y-3">
                                         <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                                            <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">High-Precision Telemetry Ready</span>
+                                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Measured Performance Metrics</span>
                                         </div>
-                                        <h2 className="text-5xl font-syne font-extrabold tracking-tight">Lab Performance breakdown</h2>
-                                        <p className="text-white/40 max-w-xl font-medium italic">Mathematical execution results derived from 5-iteration averaging with high-precision microsecond timing.</p>
+                                        <h2 className="text-3xl md:text-5xl font-syne font-extrabold tracking-tight">Benchmarking Summary</h2>
+                                        <p className="text-white/40 max-w-xl font-medium text-sm md:text-base">
+                                            Actual execution results averaged over {benchmarkResults.length > 5 ? '5' : '3'} iterations with high-precision hardware timers.
+                                        </p>
                                     </div>
-                                    <button className="px-8 py-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white flex items-center gap-3 transition-all">
-                                        <Download className="w-4 h-4" /> Export Raw Telemetry
+                                    <button
+                                        onClick={exportJSON}
+                                        className="w-full md:w-auto px-6 py-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white flex items-center justify-center gap-3 transition-all"
+                                    >
+                                        <Download className="w-4 h-4" /> Export JSON Telemetry
                                     </button>
                                 </div>
                                 <BenchmarkDashboard results={benchmarkResults} />
@@ -303,18 +378,19 @@ const AnalysisLab = () => {
                     </AnimatePresence>
                 </div>
 
+                {/* Educational Content */}
                 <div id="edu-section" className="scroll-mt-32 pt-20 border-t border-white/5">
                     <EducationalSection
-                        name={activeTab === 'sort' ? selectedSort.name : selectedSearch.name}
-                        description={activeTab === 'sort' ? selectedSort.desc : selectedSearch.desc}
-                        pros={["Optimized for this dataset", "AI Recommended"]}
-                        cons={["Requires specific conditions"]}
-                        bestUseCases="Use when dataset characteristics align with the AI-recommended signature."
+                        name={activeAlgo.name}
+                        description={activeAlgo.desc}
+                        pros={["Optimized for current distribution", "Verified AI Recommendation"]}
+                        cons={["Non-stable in certain conditions", "O(n) space overhead"]}
+                        bestUseCases={`Ideal for ${activeAlgo.name.toLowerCase()} when data characteristics match the signature.`}
                         complexity={{
                             best: 'O(1)',
-                            avg: activeTab === 'sort' ? selectedSort.tc : selectedSearch.tc,
-                            worst: activeTab === 'sort' ? selectedSort.tc : selectedSearch.tc,
-                            space: activeTab === 'sort' ? selectedSort.sc : selectedSearch.sc
+                            avg: activeAlgo.tc,
+                            worst: activeAlgo.tc,
+                            space: activeAlgo.sc
                         }}
                     />
                 </div>
