@@ -2,12 +2,9 @@ import {
   Activity,
   Database,
   BarChart3,
-  ArrowUpRight,
   TrendingUp,
-  TrendingDown,
   LayoutGrid,
   Hash,
-  Binary,
   Zap,
   Cpu,
   BrainCircuit,
@@ -26,7 +23,7 @@ const AdvancedArrayInsightsPanel: React.FC<Props> = ({ array }) => {
 
   const getStats = () => {
     const uniques = new Set(array).size;
-    const sorted = n > 1 ? array.every((v, i) => i === 0 || v >= array[i-1]) : true;
+    const isSortedFlag = n > 1 ? array.every((v, i) => i === 0 || v >= array[i-1]) : true;
     const revSorted = n > 1 ? array.every((v, i) => i === 0 || v <= array[i-1]) : true;
 
     // Heuristic Entropy (simplified)
@@ -35,22 +32,22 @@ const AdvancedArrayInsightsPanel: React.FC<Props> = ({ array }) => {
 
     // Search/Sort Difficulty
     let sortDiff = 0;
-    if (sorted) sortDiff = 5;
+    if (isSortedFlag) sortDiff = 5;
     else if (revSorted) sortDiff = 85;
     else sortDiff = Math.min(100, 50 + (duplicateRatio * 50));
 
     let datasetClass = "Random";
     if (n === 0) datasetClass = "Empty";
     else if (n > 5000) datasetClass = "Large Dataset";
-    else if (sorted) datasetClass = "Sorted";
+    else if (isSortedFlag) datasetClass = "Sorted";
     else if (revSorted) datasetClass = "Reverse Sorted";
     else if (duplicateRatio > 0.5) datasetClass = "Duplicate Heavy";
     else if (uniques === n) datasetClass = "Unique Only";
 
-    return { uniques, sorted, revSorted, duplicateRatio, entropyScore, sortDiff, datasetClass };
+    return { uniques, isSortedFlag, revSorted, duplicateRatio, entropyScore, sortDiff, datasetClass };
   };
 
-  const { uniques, sorted, duplicateRatio, entropyScore, sortDiff, datasetClass } = getStats();
+  const { uniques, duplicateRatio, entropyScore, sortDiff, datasetClass } = getStats();
 
   const getNumericalMetrics = () => {
     if (!isNumeric || n === 0) return null;

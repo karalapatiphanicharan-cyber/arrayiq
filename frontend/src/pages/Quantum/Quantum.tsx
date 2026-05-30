@@ -3,7 +3,7 @@ import axios from 'axios';
 import PageWrapper from '../../components/layout/PageWrapper';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Cpu, Zap, Info, ArrowRight, Activity,
+  Cpu, Zap, Info, Activity,
   Binary, Target, Database, HelpCircle,
   Lightbulb, ShieldCheck, Microscope
 } from 'lucide-react';
@@ -284,7 +284,7 @@ const Quantum = () => {
                                     <td className="py-8">
                                         <span className="px-3 py-1 rounded-md bg-secondary/10 text-secondary text-[10px] font-bold uppercase tracking-widest border border-secondary/20">
                                             {row.adv}
-                                        }</span>
+                                        </span>
                                     </td>
                                 </tr>
                             ))}
