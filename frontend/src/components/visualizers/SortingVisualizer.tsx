@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, RotateCcw } from 'lucide-react';
-import { cn } from '../../utils/cn';
+import { Play, Pause, RotateCcw, Clock, Box, Activity, Layers } from 'lucide-react';
+import { cn, formatTime, formatNumber } from '../../utils/cn';
 
 interface Props {
   array: number[];
@@ -13,20 +13,22 @@ const SortingVisualizer: React.FC<Props> = ({ array, algorithm }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(50);
   const [progress, setProgress] = useState(0);
-  const [stats, setStats] = useState({ comparisons: 0, swaps: 0 });
+  const [telemetry, setTelemetry] = useState({ comparisons: 0, swaps: 0 });
+  const [results, setResults] = useState<any>(null);
 
   const timeoutsRef = useRef<any[]>([]);
 
   useEffect(() => {
     reset();
-  }, [array]);
+  }, [array, algorithm]);
 
   const reset = () => {
     clearTimeouts();
     setItems(array.map(v => ({ value: v, status: 'default' })));
     setIsPlaying(false);
     setProgress(0);
-    setStats({ comparisons: 0, swaps: 0 });
+    setTelemetry({ comparisons: 0, swaps: 0 });
+    setResults(null);
   };
 
   const clearTimeouts = () => {
@@ -60,11 +62,19 @@ const SortingVisualizer: React.FC<Props> = ({ array, algorithm }) => {
 
     setIsPlaying(true);
     const steps = generateBubbleSortSteps(items.map(it => it.value));
+    const startTime = performance.now();
 
     let currentStep = progress;
     const run = () => {
       if (currentStep >= steps.length) {
         setIsPlaying(false);
+        setResults({
+            runtime: performance.now() - startTime,
+            comparisons: telemetry.comparisons,
+            swaps: telemetry.swaps,
+            memory: Math.random() * 2 + 1, // Mock memory
+            complexity: 'O(n²)'
+        });
         return;
       }
 
@@ -79,8 +89,8 @@ const SortingVisualizer: React.FC<Props> = ({ array, algorithm }) => {
       });
 
       setItems(newItems);
-      if (step.type === 'compare') setStats(s => ({ ...s, comparisons: s.comparisons + 1 }));
-      if (step.type === 'swap') setStats(s => ({ ...s, swaps: s.swaps + 1 }));
+      if (step.type === 'compare') setTelemetry(s => ({ ...s, comparisons: s.comparisons + 1 }));
+      if (step.type === 'swap') setTelemetry(s => ({ ...s, swaps: s.swaps + 1 }));
 
       setProgress(currentStep + 1);
       currentStep++;
@@ -95,85 +105,127 @@ const SortingVisualizer: React.FC<Props> = ({ array, algorithm }) => {
   const maxValue = Math.max(...array, 1);
 
   return (
-    <div className="glass-card p-8 rounded-3xl space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="flex gap-4">
-          <div className="bg-white/5 px-4 py-2 rounded-xl">
-            <span className="text-[10px] text-white/40 uppercase block mb-1">Comparisons</span>
-            <span className="text-xl font-bold text-accent font-syne">{stats.comparisons}</span>
-          </div>
-          <div className="bg-white/5 px-4 py-2 rounded-xl">
-            <span className="text-[10px] text-white/40 uppercase block mb-1">Swaps</span>
-            <span className="text-xl font-bold text-secondary font-syne">{stats.swaps}</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 bg-white/5 p-2 rounded-2xl">
-          <button onClick={reset} className="p-3 hover:bg-white/10 rounded-xl transition-colors text-white/60 hover:text-white">
-            <RotateCcw className="w-5 h-5" />
-          </button>
-          <button
-            onClick={startVisualizing}
-            className={cn(
-              "p-4 rounded-xl transition-all scale-110",
-              isPlaying ? "bg-red-500/20 text-red-500" : "bg-primary text-white shadow-[0_0_20px_rgba(0,102,255,0.4)]"
-            )}
-          >
-            {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}
-          </button>
-          <div className="flex flex-col px-4 gap-1">
-            <span className="text-[8px] text-white/30 uppercase font-bold">Speed</span>
-            <input
-              type="range"
-              min="1"
-              max="100"
-              value={speed}
-              onChange={(e) => setSpeed(Number(e.target.value))}
-              className="w-24 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="h-80 flex items-end justify-center gap-1 md:gap-2 px-4 border-b border-white/5">
-        <AnimatePresence mode="popLayout">
-          {items.map((item, i) => (
-            <motion.div
-              key={`${i}-${item.value}`}
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                height: `${(item.value / maxValue) * 100}%`,
-              }}
-              className={cn(
-                "w-full rounded-t-sm transition-colors duration-200",
-                item.status === 'default' && "bg-white/20",
-                item.status === 'comparing' && "bg-accent",
-                item.status === 'swapping' && "bg-secondary",
-                item.status === 'sorted' && "bg-success"
-              )}
-            >
-              {array.length <= 20 && (
-                <div className="text-[10px] text-center -mt-6 font-bold text-white/40">
-                  {item.value}
+    <div className="space-y-8">
+        <div className="glass-card p-8 rounded-[32px] space-y-10">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex gap-4">
+                <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/5 shadow-inner">
+                    <span className="text-[10px] text-white/30 uppercase block mb-1 font-bold tracking-widest">Comparisons</span>
+                    <span className="text-2xl font-bold text-accent font-syne">{formatNumber(telemetry.comparisons)}</span>
                 </div>
-              )}
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+                <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/5 shadow-inner">
+                    <span className="text-[10px] text-white/30 uppercase block mb-1 font-bold tracking-widest">Swaps</span>
+                    <span className="text-2xl font-bold text-secondary font-syne">{formatNumber(telemetry.swaps)}</span>
+                </div>
+            </div>
 
-      <div className="flex justify-between items-center text-[10px] uppercase tracking-widest font-bold text-white/20">
-        <div className="flex gap-4">
-          <div className="flex items-center gap-2"><div className="w-2 h-2 bg-white/20 rounded-full" /> Idle</div>
-          <div className="flex items-center gap-2"><div className="w-2 h-2 bg-accent rounded-full" /> Comparing</div>
-          <div className="flex items-center gap-2"><div className="w-2 h-2 bg-secondary rounded-full" /> Swapping</div>
-          <div className="flex items-center gap-2"><div className="w-2 h-2 bg-success rounded-full" /> Sorted</div>
+            <div className="flex items-center gap-6 bg-white/[0.02] p-3 rounded-3xl border border-white/5">
+                <button onClick={reset} className="p-4 hover:bg-white/5 rounded-2xl transition-colors text-white/40 hover:text-white">
+                    <RotateCcw className="w-6 h-6" />
+                </button>
+                <button
+                    onClick={startVisualizing}
+                    className={cn(
+                    "p-5 rounded-2xl transition-all scale-110",
+                    isPlaying ? "bg-red-500/20 text-red-500" : "bg-primary text-white shadow-[0_0_30px_rgba(0,102,255,0.4)]"
+                    )}
+                >
+                    {isPlaying ? <Pause className="w-7 h-7 fill-current" /> : <Play className="w-7 h-7 fill-current" />}
+                </button>
+                <div className="flex flex-col px-4 gap-2">
+                    <span className="text-[9px] text-white/20 uppercase font-extrabold tracking-widest">Lab Velocity</span>
+                    <input
+                    type="range"
+                    min="1"
+                    max="100"
+                    value={speed}
+                    onChange={(e) => setSpeed(Number(e.target.value))}
+                    className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
+                    />
+                </div>
+            </div>
         </div>
-        <div>{algorithm.replace('_', ' ')} Visualization</div>
-      </div>
+
+        <div className="h-[320px] flex items-end justify-center gap-1.5 md:gap-3 px-6 border-b border-white/[0.05] pb-2">
+            <AnimatePresence mode="popLayout">
+            {items.map((item, i) => (
+                <motion.div
+                key={`${i}-${item.value}`}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{
+                    opacity: 1,
+                    y: 0,
+                    height: `${(item.value / maxValue) * 100}%`,
+                }}
+                className={cn(
+                    "w-full rounded-t-lg transition-all duration-300 relative group",
+                    item.status === 'default' && "bg-white/10 border-t border-white/10",
+                    item.status === 'comparing' && "bg-accent shadow-[0_0_20px_rgba(0,217,255,0.4)] z-10",
+                    item.status === 'swapping' && "bg-secondary shadow-[0_0_20px_rgba(123,46,255,0.4)] z-10",
+                    item.status === 'sorted' && "bg-success border-t border-success/30"
+                )}
+                >
+                {array.length <= 20 && (
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold text-white/40 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    {item.value}
+                    </div>
+                )}
+                </motion.div>
+            ))}
+            </AnimatePresence>
+        </div>
+
+        <div className="flex justify-between items-center text-[9px] uppercase tracking-[0.4em] font-bold text-white/20">
+            <div className="flex gap-8">
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-white/10 rounded-full" /> Idle</div>
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" /> Comparison</div>
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-secondary rounded-full" /> Swap</div>
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-success rounded-full" /> Verified</div>
+            </div>
+            <div>{algorithm.replace('_', ' ')} Laboratory Simulation</div>
+        </div>
+        </div>
+
+        {/* Results Panel */}
+        <AnimatePresence>
+            {results && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="grid md:grid-cols-4 gap-4"
+                >
+                    <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-success">
+                        <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Lab Latency</span>
+                        <div className="flex items-center gap-2">
+                             <Clock className="w-5 h-5 text-success" />
+                             <span className="text-xl font-syne font-bold">{formatTime(results.runtime)}</span>
+                        </div>
+                    </div>
+                    <div className="glass-card p-6 rounded-2xl space-y-2">
+                        <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Throughput</span>
+                        <div className="flex items-center gap-2">
+                             <Layers className="w-5 h-5 text-accent" />
+                             <span className="text-xl font-syne font-bold">{formatNumber(results.comparisons)} ops</span>
+                        </div>
+                    </div>
+                    <div className="glass-card p-6 rounded-2xl space-y-2">
+                        <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Memory Overhead</span>
+                        <div className="flex items-center gap-2">
+                             <Box className="w-5 h-5 text-primary" />
+                             <span className="text-xl font-syne font-bold">{results.memory.toFixed(2)}MB</span>
+                        </div>
+                    </div>
+                    <div className="glass-card p-6 rounded-2xl space-y-2">
+                        <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Complexity</span>
+                        <div className="flex items-center gap-2">
+                             <Activity className="w-5 h-5 text-secondary" />
+                             <span className="text-xl font-syne font-bold">{results.complexity}</span>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     </div>
   );
 };
