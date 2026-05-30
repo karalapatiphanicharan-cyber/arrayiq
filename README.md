@@ -1,142 +1,181 @@
-🚀 ArrayIQ
-AI-Powered Algorithm Intelligence Platform
+# 🚀 ArrayIQ
 
-ArrayIQ is a full-stack algorithm analysis, benchmarking, visualization, and recommendation platform designed to help developers understand, compare, and select the most efficient searching and sorting algorithms for different datasets.
+## AI-Powered Algorithm Intelligence Platform
 
-Built with a modern interactive UI, real-time visualizations, intelligent recommendations, and benchmarking tools, ArrayIQ transforms algorithm learning and performance analysis into an engaging experience.
+ArrayIQ is a full-stack algorithm analysis, benchmarking, visualization, recommendation, and educational platform focused on searching and sorting algorithms.
 
-🌐 Live Demo
+It helps developers, students, and educators:
 
-Frontend:
-arrayiq.vercel.app
+- Analyze datasets
+- Visualize algorithm execution
+- Benchmark performance
+- Compare algorithms
+- Receive intelligent recommendations
+- Explore quantum-inspired algorithms
 
-Backend API:
-ArrayIQ API
+---
 
-✨ Features
-🔍 Intelligent Search Recommendations
+## 🌐 Live Demo
+
+### Frontend
+https://arrayiq.vercel.app
+
+### Backend API
+https://arrayiq-api.onrender.com
+
+---
+
+# ✨ Features
+
+## 🔍 Intelligent Search Recommendations
 
 ArrayIQ analyzes dataset characteristics and recommends the most suitable search algorithm based on:
 
-Dataset size
-Sorted vs unsorted state
-Value distribution
-Search target behavior
-Computational efficiency
+- Dataset Size
+- Sorted vs Unsorted State
+- Value Distribution
+- Search Target Behavior
+- Computational Efficiency
 
-Supported Search Algorithms:
+### Supported Search Algorithms
 
-Linear Search
-Binary Search
-Jump Search
-Interpolation Search
-Exponential Search
-Fibonacci Search
-📊 Advanced Sorting Analysis
+- Linear Search
+- Binary Search
+- Jump Search
+- Interpolation Search
+- Exponential Search
+- Fibonacci Search
+
+---
+
+## 📊 Advanced Sorting Analysis
 
 Compare and visualize multiple sorting algorithms in real time.
 
-Supported Sorting Algorithms:
+### Supported Sorting Algorithms
 
-Bubble Sort
-Selection Sort
-Insertion Sort
-Merge Sort
-Quick Sort
-Heap Sort
-Shell Sort
-Counting Sort
-Radix Sort
-Bucket Sort
-Tim Sort
-⚡ Live Algorithm Visualization
+- Bubble Sort
+- Selection Sort
+- Insertion Sort
+- Merge Sort
+- Quick Sort
+- Heap Sort
+- Shell Sort
+- Counting Sort
+- Radix Sort
+- Bucket Sort
+- Tim Sort
+
+---
+
+## ⚡ Live Algorithm Visualization
 
 Interactive visualizations provide:
 
-Step-by-step execution
-Real-time array updates
-Comparison tracking
-Swap tracking
-Progress indicators
-Adjustable animation speed
-🏆 Benchmark Engine
+- Step-by-step execution
+- Real-time array updates
+- Comparison tracking
+- Swap tracking
+- Progress indicators
+- Adjustable animation speed
+
+---
+
+## 🏆 Benchmark Engine
 
 Run comprehensive benchmarks across multiple algorithms.
 
-Metrics Collected:
+### Metrics Collected
 
-Runtime
-Comparisons
-Swaps
-Memory Usage
-Throughput
-Performance Rankings
+- Runtime
+- Comparisons
+- Swaps
+- Memory Usage
+- Throughput
+- Performance Rankings
 
-Outputs:
+### Outputs
 
-Winner Selection
-Benchmark Tables
-Performance Charts
-Efficiency Rankings
-🤖 Recommendation Engine
+- Winner Selection
+- Benchmark Tables
+- Performance Charts
+- Efficiency Rankings
+
+---
+
+## 🤖 Recommendation Engine
 
 ArrayIQ automatically recommends:
 
-Sorting Algorithms
+### Sorting Algorithms
 
 Based on:
 
-Array size
-Duplicate frequency
-Value range
-Sortedness score
-Distribution characteristics
-Searching Algorithms
+- Array Size
+- Duplicate Frequency
+- Value Range
+- Sortedness Score
+- Distribution Characteristics
+
+### Searching Algorithms
 
 Based on:
 
-Search requirements
-Data ordering
-Dataset characteristics
-Performance expectations
+- Search Requirements
+- Data Ordering
+- Dataset Characteristics
+- Performance Expectations
 
 Includes:
 
-Confidence Score
-Recommendation Reasoning
-Suitability Analysis
-📈 Comparative Analytics
+- Confidence Score
+- Recommendation Reasoning
+- Suitability Analysis
+
+---
+
+## 📈 Comparative Analytics
 
 Compare algorithms side-by-side using:
 
-Runtime metrics
-Operation counts
-Memory consumption
-Efficiency rankings
-Visual performance charts
-🧬 Dataset Intelligence
+- Runtime Metrics
+- Operation Counts
+- Memory Consumption
+- Efficiency Rankings
+- Performance Charts
+
+---
+
+## 🧬 Dataset Intelligence
 
 Analyze datasets using:
 
-Minimum Value
-Maximum Value
-Average
-Median
-Distinct Count
-Duplicate Count
-Distribution Analysis
-🌌 Quantum Space
+- Minimum Value
+- Maximum Value
+- Average
+- Median
+- Distinct Count
+- Duplicate Count
+- Distribution Analysis
+
+---
+
+## 🌌 Quantum Space
 
 Educational quantum-inspired algorithm exploration environment featuring:
 
-Grover's Search Simulation
-Quantum Walk Simulation
-Amplitude Amplification Concepts
-Quantum Bitonic Concepts
+- Grover's Search Simulation
+- Quantum Walk Simulation
+- Amplitude Amplification Concepts
+- Quantum Bitonic Concepts
 
 Designed for educational visualization and comparison with classical approaches.
 
-🏗️ Architecture
+---
+
+# 🏗️ Architecture
+
+```text
 ArrayIQ
 │
 ├── frontend
@@ -157,113 +196,180 @@ ArrayIQ
 └── deployment
     ├── Vercel (Frontend)
     └── Render (Backend)
-🛠️ Tech Stack
-Frontend
-React
-TypeScript
-Vite
-Tailwind CSS
-Framer Motion
-Recharts
-Backend
-FastAPI
-Python
-NumPy
-Pydantic
-Uvicorn
-Deployment
-Vercel
-Render
-🚀 Local Setup
-Clone Repository
+```
+
+---
+
+# 🛠️ Tech Stack
+
+## Frontend
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- Framer Motion
+- Recharts
+
+## Backend
+
+- FastAPI
+- Python
+- NumPy
+- Pydantic
+- Uvicorn
+
+## Deployment
+
+- Vercel
+- Render
+
+---
+
+# 🚀 Local Setup
+
+## Clone Repository
+
+```bash
 git clone https://github.com/karalapatiphanicharan-cyber/arrayiq.git
 cd arrayiq
-Backend Setup
+```
+
+---
+
+## Backend Setup
+
+```bash
 cd backend
 
 python -m venv venv
 
+# Windows
 venv\Scripts\activate
 
 pip install -r requirements.txt
 
 uvicorn main:app --reload
+```
 
 Backend runs at:
 
+```text
 http://localhost:8000
-Frontend Setup
+```
+
+---
+
+## Frontend Setup
+
+```bash
 cd frontend
 
 npm install
 
 npm run dev
+```
 
 Frontend runs at:
 
+```text
 http://localhost:5173
-⚙️ Environment Variables
+```
 
-Frontend:
+---
 
-VITE_API_URL=http://localhost:8000
+# ⚙️ Environment Variables
 
-Production:
+Create:
 
+```text
+frontend/.env
+```
+
+Add:
+
+```env
 VITE_API_URL=https://arrayiq-api.onrender.com
-📱 Responsive Design
+```
 
-ArrayIQ is fully optimized for:
+---
 
-Desktop
-Laptop
-Tablet
-Mobile Devices
+# 📱 Responsive Design
+
+Optimized for:
+
+- Desktop
+- Laptop
+- Tablet
+- Mobile
 
 Features include:
 
-Adaptive layouts
-Responsive charts
-Mobile-friendly controls
-Dynamic visualizations
-🎯 Use Cases
-Students
-Learn algorithms visually
-Understand performance trade-offs
-Explore algorithm behavior
-Developers
-Benchmark algorithms
-Compare efficiencies
-Select optimal solutions
-Educators
-Demonstrate concepts interactively
-Teach algorithm design
-Visualize execution processes
-📊 Future Enhancements
-Graph Algorithms
-Dynamic Programming Visualizations
-Machine Learning Based Recommendations
-Custom Benchmark Profiles
-Algorithm Complexity Explorer
-Dataset Import/Export
-User Accounts & Saved Sessions
-👨‍💻 Author
+- Adaptive Layouts
+- Responsive Charts
+- Mobile-Friendly Controls
+- Dynamic Visualizations
 
-Phani Charan
+---
 
-GitHub: karalapatiphanicharan-cyber
-⭐ Support
+# 🎯 Use Cases
+
+## Students
+
+- Learn Algorithms Visually
+- Understand Complexity
+- Explore Performance Tradeoffs
+
+## Developers
+
+- Benchmark Algorithms
+- Compare Efficiency
+- Select Optimal Solutions
+
+## Educators
+
+- Demonstrate Concepts Interactively
+- Teach Algorithm Design
+- Visualize Execution Processes
+
+---
+
+# 📊 Future Enhancements
+
+- Graph Algorithms
+- Dynamic Programming Visualizations
+- Machine Learning Recommendations
+- Custom Benchmark Profiles
+- Complexity Explorer
+- Dataset Import / Export
+- User Accounts
+- Saved Sessions
+
+---
+
+# 👨‍💻 Author
+
+**Phani Charan**
+
+GitHub:
+https://github.com/karalapatiphanicharan-cyber
+
+---
+
+# ⭐ Support
 
 If you found this project useful:
 
-⭐ Star the repository
+⭐ Star the Repository
 
-🍴 Fork the project
+🍴 Fork the Project
 
-🛠️ Contribute improvements
+🛠️ Contribute Improvements
 
-📢 Share feedback
+📢 Share Feedback
 
-"Analyze. Benchmark. Optimize." ⚡
+---
+
+## Analyze. Benchmark. Optimize. ⚡
 
 ArrayIQ helps developers make data-driven decisions when selecting searching and sorting algorithms.
