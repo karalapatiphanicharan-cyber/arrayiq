@@ -1,7 +1,8 @@
+import time
 from ..algorithms.sorting.algorithms import *
 from ..algorithms.searching.algorithms import *
 
-def run_sorting_benchmark(arr):
+def run_sorting_benchmark(arr, iterations=5):
     algorithms = {
         "Bubble Sort": bubble_sort,
         "Selection Sort": selection_sort,
@@ -19,23 +20,39 @@ def run_sorting_benchmark(arr):
     results = []
     for name, func in algorithms.items():
         try:
-            # Skip slow ones for large arrays in benchmark
-            if len(arr) > 2000 and name in ["Bubble Sort", "Selection Sort"]:
+            # Protection for slow algos
+            if len(arr) > 5000 and name in ["Bubble Sort", "Selection Sort"]:
                 continue
 
-            sorted_arr, runtime, comparisons, swaps = func(arr[:])
+            total_time = 0
+            total_comps = 0
+            total_swaps = 0
+
+            # Execute first run to warm up and get comps/swaps
+            _, r_time, r_comps, r_swaps = func(list(arr))
+            total_time += r_time
+            total_comps = r_comps
+            total_swaps = r_swaps
+
+            for _ in range(iterations - 1):
+                _, r_time, _, _ = func(list(arr))
+                total_time += r_time
+
+            avg_runtime = total_time / iterations
+
             results.append({
                 "name": name,
-                "runtime": runtime,
-                "comparisons": comparisons,
-                "swaps": swaps
+                "runtime": avg_runtime,
+                "comparisons": total_comps,
+                "swaps": total_swaps
             })
         except Exception as e:
             print(f"Error benchmarking {name}: {e}")
 
+    # Strictly rank by runtime
     return sorted(results, key=lambda x: x["runtime"])
 
-def run_searching_benchmark(arr, target):
+def run_searching_benchmark(arr, target, iterations=5):
     algorithms = {
         "Linear Search": linear_search,
         "Binary Search": binary_search,
@@ -53,11 +70,23 @@ def run_searching_benchmark(arr, target):
             if name != "Linear Search" and not is_sorted:
                 continue
 
-            found_idx, runtime, comparisons = func(arr, target)
+            total_time = 0
+            total_comps = 0
+            found_idx = -1
+
+            _, r_time, r_comps = func(arr, target)
+            total_time += r_time
+            total_comps = r_comps
+
+            for _ in range(iterations - 1):
+                idx, r_time, _ = func(arr, target)
+                total_time += r_time
+                found_idx = idx
+
             results.append({
                 "name": name,
-                "runtime": runtime,
-                "comparisons": comparisons,
+                "runtime": total_time / iterations,
+                "comparisons": total_comps,
                 "found_index": found_idx
             })
         except Exception as e:

@@ -37,6 +37,43 @@ const SearchVisualizer: React.FC<Props> = ({ array, target, algorithm }) => {
     timeoutsRef.current = [];
   };
 
+  const generateSteps = (arr: any[], target: any, algo: string) => {
+    const steps: any[] = [];
+    if (algo === 'linear_search') {
+      for (let i = 0; i < arr.length; i++) {
+        steps.push({ type: 'check', index: i, discarded: Array.from({length: i}, (_, k) => k) });
+        if (arr[i] === target) {
+          steps.push({ type: 'found', index: i });
+          return steps;
+        }
+      }
+      steps.push({ type: 'not_found' });
+    } else if (algo === 'binary_search') {
+      let left = 0;
+      let right = arr.length - 1;
+      const discarded: number[] = [];
+      while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        steps.push({ type: 'check', index: mid, discarded: [...discarded] });
+        if (arr[mid] === target) {
+          steps.push({ type: 'found', index: mid });
+          return steps;
+        }
+        if (arr[mid] < target) {
+          for (let i = left; i <= mid; i++) if (!discarded.includes(i)) discarded.push(i);
+          left = mid + 1;
+        } else {
+          for (let i = mid; i <= right; i++) if (!discarded.includes(i)) discarded.push(i);
+          right = mid - 1;
+        }
+      }
+      steps.push({ type: 'not_found' });
+    } else {
+        return generateSteps(arr, target, 'linear_search');
+    }
+    return steps;
+  };
+
   const startVisualizing = () => {
     if (isPlaying) {
       setIsPlaying(false);
@@ -45,49 +82,55 @@ const SearchVisualizer: React.FC<Props> = ({ array, target, algorithm }) => {
     }
 
     setIsPlaying(true);
-    let step = progress;
+    const steps = generateSteps(array, target, algorithm);
     const startTime = performance.now();
-    let comparisons = 0;
 
+    let currentStep = progress;
     const run = () => {
-      if (step >= array.length) {
+      if (currentStep >= steps.length) {
         setIsPlaying(false);
-        setResults({
-            found: false,
-            runtime: performance.now() - startTime,
-            comparisons: comparisons,
-            complexity: 'O(n)'
-        });
         return;
       }
 
-      comparisons++;
+      const step = steps[currentStep];
+
+      if (step.type === 'not_found') {
+          setIsPlaying(false);
+          setResults({
+              found: false,
+              runtime: performance.now() - startTime,
+              comparisons: currentStep,
+              complexity: 'O(log n)'
+          });
+          return;
+      }
+
+      if (step.type === 'found') {
+          setItems(prev => prev.map((it, i) => i === step.index ? { ...it, status: 'found' } : it));
+          setIsPlaying(false);
+          setResults({
+              found: true,
+              index: step.index,
+              value: array[step.index],
+              runtime: performance.now() - startTime,
+              comparisons: currentStep,
+              complexity: algorithm === 'binary_search' ? 'O(log n)' : 'O(n)'
+          });
+          return;
+      }
+
       const newItems = array.map((v, i) => {
         let status: 'default' | 'checking' | 'found' | 'discarded' = 'default';
-        if (i === step) status = 'checking';
-        if (i < step) status = 'discarded';
-        if (v === target && i === step) status = 'found';
+        if (i === step.index) status = 'checking';
+        if (step.discarded?.includes(i)) status = 'discarded';
         return { value: v, status };
       });
 
       setItems(newItems as any);
-      setCurrentIndex(step);
+      setCurrentIndex(step.index);
 
-      if (array[step] === target) {
-        setIsPlaying(false);
-        setResults({
-            found: true,
-            index: step,
-            value: array[step],
-            runtime: performance.now() - startTime,
-            comparisons: comparisons,
-            complexity: 'O(n)'
-        });
-        return;
-      }
-
-      setProgress(step + 1);
-      step++;
+      setProgress(currentStep + 1);
+      currentStep++;
 
       const timeout = setTimeout(run, 101 - speed);
       timeoutsRef.current.push(timeout);
