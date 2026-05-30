@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
 import Lenis from 'lenis';
 
 import Navbar from './components/layout/Navbar';
@@ -13,12 +13,26 @@ const AnalysisLab = React.lazy(() => import('./pages/AnalysisLab/AnalysisLab'));
 const Quantum = React.lazy(() => import('./pages/Quantum/Quantum'));
 const About = React.lazy(() => import('./pages/About/About'));
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
 const AppContent = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const lenis = new Lenis();
+    const lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+
     function raf(time: number) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -34,12 +48,13 @@ const AppContent = () => {
 
   return (
     <>
-      <AnimatePresence>
+      <ScrollToTop />
+      <AnimatePresence mode="wait">
         {loading && <LoadingScreen key="loading" />}
       </AnimatePresence>
 
       {!loading && (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen bg-[#0A0A0A]">
           <Navbar />
           <main className="flex-grow pt-24">
             <React.Suspense fallback={<div className="h-screen bg-[#0A0A0A]" />}>
