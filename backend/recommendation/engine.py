@@ -142,13 +142,24 @@ def get_sorting_recommendation(arr: List[Any]) -> List[Dict[str, Any]]:
 
     sorted_recs = sorted(candidates, key=lambda x: x["score"], reverse=True)
 
+    # Mapping for complexity and rating
+    details = {
+        "Quick Sort": ("O(n log n)", "High Performance"),
+        "Merge Sort": ("O(n log n)", "Stable Performance"),
+        "Tim Sort": ("O(n)", "Adaptive/Optimal"),
+        "Insertion Sort": ("O(n)", "Low Overhead"),
+        "Counting Sort": ("O(n+k)", "Linear Speed")
+    }
+
     return [
         {
             "name": r["name"],
             "confidence": r["score"],
             "reason": r["reason"],
             "rank": i + 1,
-            "type": "Primary" if i == 0 else ("Secondary" if i == 1 else "Alternative")
+            "type": "Primary" if i == 0 else ("Secondary" if i == 1 else "Alternative"),
+            "complexity": details.get(r["name"], ("O(n log n)", "Optimal"))[0],
+            "efficiency": details.get(r["name"], ("O(n log n)", "Optimal"))[1]
         }
         for i, r in enumerate(sorted_recs[:3])
     ]
@@ -167,13 +178,15 @@ def get_searching_recommendation(arr: List[Any]) -> List[Dict[str, Any]]:
             "name": "Linear Search",
             "confidence": 100,
             "reason": "Array is unstructured. Sequential O(n) scan is mandatory for guaranteed discovery.",
-            "rank": 1, "type": "Primary"
+            "rank": 1, "type": "Primary",
+            "complexity": "O(n)", "efficiency": "Guaranteed"
         })
         recs.append({
             "name": "Quick Sort + Binary Search",
             "confidence": 75,
             "reason": "For multiple lookups, consider one-time O(n log n) sort followed by O(log n) searches.",
-            "rank": 2, "type": "Secondary"
+            "rank": 2, "type": "Secondary",
+            "complexity": "O(log n)", "efficiency": "High (post-sort)"
         })
     else:
         if is_uniform:
@@ -181,26 +194,30 @@ def get_searching_recommendation(arr: List[Any]) -> List[Dict[str, Any]]:
                 "name": "Interpolation Search",
                 "confidence": 98,
                 "reason": "Uniform distribution detected. Performance approaches O(log log n) by calculating likely position.",
-                "rank": 1, "type": "Primary"
+                "rank": 1, "type": "Primary",
+                "complexity": "O(log log n)", "efficiency": "Sub-Logarithmic"
             })
             recs.append({
                 "name": "Binary Search",
                 "confidence": 95,
                 "reason": "Highly robust fallback for sorted data with O(log n) guarantees.",
-                "rank": 2, "type": "Secondary"
+                "rank": 2, "type": "Secondary",
+                "complexity": "O(log n)", "efficiency": "Logarithmic"
             })
         else:
             recs.append({
                 "name": "Binary Search",
                 "confidence": 99,
                 "reason": "Sorted distribution. Logarithmic time complexity is optimal for general sorted search.",
-                "rank": 1, "type": "Primary"
+                "rank": 1, "type": "Primary",
+                "complexity": "O(log n)", "efficiency": "Logarithmic"
             })
             recs.append({
                 "name": "Fibonacci Search",
                 "confidence": 85,
                 "reason": "Division-less search using golden ratio. Efficient on hardware with slow division.",
-                "rank": 2, "type": "Secondary"
+                "rank": 2, "type": "Secondary",
+                "complexity": "O(log n)", "efficiency": "Logarithmic"
             })
 
     return recs[:3]

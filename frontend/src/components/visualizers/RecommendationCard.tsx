@@ -6,6 +6,8 @@ interface Recommendation {
   name: string;
   confidence: number;
   reason: string;
+  complexity?: string;
+  efficiency?: string;
 }
 
 interface Props {
@@ -54,12 +56,12 @@ const RecommendationCard: React.FC<Props> = ({ recommendation, type }) => {
 
         <div className="flex items-center gap-4">
             <div className="flex flex-col">
-                <span className="text-[8px] uppercase font-bold text-white/20 tracking-widest">Time</span>
-                <span className="text-[11px] font-bold text-white/60">O(n log n)</span>
+                <span className="text-[8px] uppercase font-bold text-white/20 tracking-widest">Complexity</span>
+                <span className="text-[11px] font-bold text-white/60">{recommendation.complexity || "Variable"}</span>
             </div>
             <div className="flex flex-col">
-                <span className="text-[8px] uppercase font-bold text-white/20 tracking-widest">Efficiency</span>
-                <span className="text-[11px] font-bold text-white/60">High Performance</span>
+                <span className="text-[8px] uppercase font-bold text-white/20 tracking-widest">Rating</span>
+                <span className="text-[11px] font-bold text-white/60">{recommendation.efficiency || "Optimal"}</span>
             </div>
         </div>
       </div>

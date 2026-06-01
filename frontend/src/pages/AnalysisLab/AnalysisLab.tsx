@@ -125,7 +125,8 @@ const AnalysisLab = () => {
         }
 
         if (array.length > 5000 && (algo.id === 'bubble_sort' || algo.id === 'selection_sort')) {
-            alert("This algorithm is not recommended for large datasets due to poor O(n²) runtime performance.");
+            setPendingAlgo(algo);
+            setIsWarningOpen(true);
             return;
         }
 
@@ -156,13 +157,28 @@ const AnalysisLab = () => {
     const currentAlgorithms = (activeTab === 'search' ? SEARCH_ALGORITHMS : (activeTab === 'compare' ? (compareType === 'sorting' ? SORT_ALGORITHMS : SEARCH_ALGORITHMS) : SORT_ALGORITHMS));
     const activeAlgo = activeTab === 'sort' ? selectedSort : selectedSearch;
 
+    const getWarningMessage = () => {
+        if (array.length > 5000 && (pendingAlgo?.id === 'bubble_sort' || pendingAlgo?.id === 'selection_sort')) {
+            return `This algorithm is not recommended for large datasets (${array.length} elements) due to poor O(n²) runtime performance. Execution may cause browser latency.`;
+        }
+        return `${pendingAlgo?.name} requires a sorted array. Would you like ArrayIQ to sort the array automatically?`;
+    };
+
     return (
         <PageWrapper>
             <WarningPopup
                 isOpen={isWarningOpen}
-                message={`${pendingAlgo?.name} requires a sorted array. Would you like ArrayIQ to sort the array automatically?`}
-                onConfirm={handleSortAndContinue}
+                message={getWarningMessage()}
+                onConfirm={() => {
+                    if (array.length > 5000 && (pendingAlgo?.id === 'bubble_sort' || pendingAlgo?.id === 'selection_sort')) {
+                        if (activeTab === 'sort') setSelectedSort(pendingAlgo);
+                        setIsWarningOpen(false);
+                    } else {
+                        handleSortAndContinue();
+                    }
+                }}
                 onCancel={() => setIsWarningOpen(false)}
+                confirmText={array.length > 5000 && (pendingAlgo?.id === 'bubble_sort' || pendingAlgo?.id === 'selection_sort') ? "Run Anyway" : "Sort & Continue"}
             />
 
             <div className="space-y-8 md:space-y-12 pb-32 max-w-[1400px] mx-auto px-4 md:px-0">
