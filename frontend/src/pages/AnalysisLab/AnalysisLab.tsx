@@ -124,6 +124,11 @@ const AnalysisLab = () => {
             return;
         }
 
+        if (array.length > 5000 && (algo.id === 'bubble_sort' || algo.id === 'selection_sort')) {
+            alert("This algorithm is not recommended for large datasets due to poor O(n²) runtime performance.");
+            return;
+        }
+
         const isSorted = array.length > 0 && array.every((v, i) => i === 0 || v >= array[i - 1]);
         if (activeTab === 'search' && algo.id !== 'linear_search' && !isSorted) {
             setPendingAlgo(algo);

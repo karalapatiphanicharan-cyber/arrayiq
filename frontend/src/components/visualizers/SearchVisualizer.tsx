@@ -48,18 +48,13 @@ const SearchVisualizer: React.FC<Props> = ({ array, target, algorithm }) => {
         }
       }
       steps.push({ type: 'not_found' });
-    } else if (algo === 'binary_search' || algo.includes('search') && algo !== 'linear_search') {
-      // Standard Binary Search visualization logic for all sorted algorithms
-      let left = 0;
-      let right = arr.length - 1;
+    } else if (algo === 'binary_search') {
+      let left = 0, right = arr.length - 1;
       const discarded: number[] = [];
       while (left <= right) {
         const mid = Math.floor((left + right) / 2);
         steps.push({ type: 'check', index: mid, discarded: [...discarded] });
-        if (arr[mid] === target) {
-          steps.push({ type: 'found', index: mid });
-          return steps;
-        }
+        if (arr[mid] === target) { steps.push({ type: 'found', index: mid }); return steps; }
         if (arr[mid] < target) {
           for (let i = left; i <= mid; i++) if (!discarded.includes(i)) discarded.push(i);
           left = mid + 1;
@@ -69,6 +64,63 @@ const SearchVisualizer: React.FC<Props> = ({ array, target, algorithm }) => {
         }
       }
       steps.push({ type: 'not_found' });
+    } else if (algo === 'jump_search') {
+        let n = arr.length, step = Math.floor(Math.sqrt(n)), prev = 0;
+        const discarded: number[] = [];
+        while (arr[Math.min(step, n) - 1] < target) {
+            steps.push({ type: 'check', index: Math.min(step, n) - 1, discarded: [...discarded] });
+            for(let i=prev; i<Math.min(step, n); i++) discarded.push(i);
+            prev = step; step += Math.floor(Math.sqrt(n));
+            if (prev >= n) { steps.push({ type: 'not_found' }); return steps; }
+        }
+        while (arr[prev] < target) {
+            steps.push({ type: 'check', index: prev, discarded: [...discarded] });
+            discarded.push(prev); prev++;
+            if (prev === Math.min(step, n)) { steps.push({ type: 'not_found' }); return steps; }
+        }
+        if (arr[prev] === target) steps.push({ type: 'found', index: prev });
+        else steps.push({ type: 'not_found' });
+    } else if (algo === 'interpolation_search') {
+        let low = 0, high = arr.length - 1;
+        while (low <= high && target >= arr[low] && target <= arr[high]) {
+            let pos = low + Math.floor(((target - arr[low]) * (high - low)) / (arr[high] - arr[low]));
+            steps.push({ type: 'check', index: pos });
+            if (arr[pos] === target) { steps.push({ type: 'found', index: pos }); return steps; }
+            if (arr[pos] < target) low = pos + 1;
+            else high = pos - 1;
+        }
+        steps.push({ type: 'not_found' });
+    } else if (algo === 'fibonacci_search') {
+        let n = arr.length, f2 = 0, f1 = 1, fm = f2 + f1;
+        while (fm < n) { f2 = f1; f1 = fm; fm = f2 + f1; }
+        let offset = -1;
+        while (fm > 1) {
+            let i = Math.min(offset + f2, n - 1);
+            steps.push({ type: 'check', index: i });
+            if (arr[i] < target) { fm = f1; f1 = f2; f2 = fm - f1; offset = i; }
+            else if (arr[i] > target) { fm = f2; f1 = f1 - f2; f2 = fm - f1; }
+            else { steps.push({ type: 'found', index: i }); return steps; }
+        }
+        if (f1 && arr[offset + 1] === target) steps.push({ type: 'found', index: offset + 1 });
+        else steps.push({ type: 'not_found' });
+    } else if (algo === 'exponential_search') {
+        let n = arr.length;
+        if (arr[0] === target) { steps.push({ type: 'found', index: 0 }); return steps; }
+        let i = 1;
+        while (i < n && arr[i] <= target) {
+            steps.push({ type: 'check', index: i });
+            if (arr[i] === target) { steps.push({ type: 'found', index: i }); return steps; }
+            i = i * 2;
+        }
+        let low = i / 2, high = Math.min(i, n - 1);
+        while (low <= high) {
+            let mid = Math.floor((low + high) / 2);
+            steps.push({ type: 'check', index: mid });
+            if (arr[mid] === target) { steps.push({ type: 'found', index: mid }); return steps; }
+            if (arr[mid] < target) low = mid + 1;
+            else high = mid - 1;
+        }
+        steps.push({ type: 'not_found' });
     }
     return steps;
   };

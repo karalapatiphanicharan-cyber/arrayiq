@@ -27,6 +27,7 @@ interface Step {
   activeRange?: [number, number];
   mode?: string;
   index?: number;
+  sortedIndices?: number[];
 }
 
 const SortingVisualizer: React.FC<Props> = ({ array, algorithm }) => {
@@ -67,9 +68,17 @@ const SortingVisualizer: React.FC<Props> = ({ array, algorithm }) => {
     const steps: Step[] = [];
     const a = [...arr];
     const n = a.length;
+    const sortedIdx: number[] = [];
 
-    const pushStep = (step: Omit<Step, 'array'>) => {
-        steps.push({ ...step, array: [...a] });
+    const pushStep = (step: Omit<Step, 'array' | 'sortedIndices'>) => {
+        if (step.type === 'sorted' && step.index !== undefined) {
+            if (!sortedIdx.includes(step.index)) sortedIdx.push(step.index);
+        }
+        steps.push({
+            ...step,
+            array: [...a],
+            sortedIndices: [...sortedIdx]
+        });
     };
 
     if (algo === 'bubble_sort') {
@@ -141,9 +150,164 @@ const SortingVisualizer: React.FC<Props> = ({ array, algorithm }) => {
             quickSort(i + 2, r);
         };
         quickSort(0, n - 1);
+    } else if (algo === 'merge_sort') {
+        const merge = (l: number, m: number, r: number) => {
+            let n1 = m - l + 1;
+            let n2 = r - m;
+            let L = a.slice(l, m + 1);
+            let R = a.slice(m + 1, r + 1);
+            let i = 0, j = 0, k = l;
+            while (i < n1 && j < n2) {
+                pushStep({ type: 'compare', indices: [l + i, m + 1 + j], message: `Merging: Comparing ${L[i]} and ${R[j]}` });
+                if (L[i] <= R[j]) { a[k] = L[i]; i++; }
+                else { a[k] = R[j]; j++; }
+                pushStep({ type: 'active', indices: [k], message: `Placing ${a[k]} in merged sequence` });
+                k++;
+            }
+            while (i < n1) { a[k] = L[i]; i++; k++; pushStep({ type: 'active', indices: [k-1], message: `Remaining from left: ${a[k-1]}` }); }
+            while (j < n2) { a[k] = R[j]; j++; k++; pushStep({ type: 'active', indices: [k-1], message: `Remaining from right: ${a[k-1]}` }); }
+        };
+        const sort = (l: number, r: number) => {
+            if (l >= r) return;
+            let m = Math.floor((l + r) / 2);
+            sort(l, m);
+            sort(m + 1, r);
+            merge(l, m, r);
+        };
+        sort(0, n - 1);
+        for(let i=0; i<n; i++) pushStep({type: 'sorted', index: i, message: 'Merge Sort Complete'});
+    } else if (algo === 'heap_sort') {
+        const heapify = (n: number, i: number) => {
+            let largest = i;
+            let l = 2 * i + 1;
+            let r = 2 * i + 2;
+            if (l < n) {
+                pushStep({ type: 'compare', indices: [largest, l], message: 'Comparing with left child' });
+                if (a[l] > a[largest]) largest = l;
+            }
+            if (r < n) {
+                pushStep({ type: 'compare', indices: [largest, r], message: 'Comparing with right child' });
+                if (a[r] > a[largest]) largest = r;
+            }
+            if (largest !== i) {
+                [a[i], a[largest]] = [a[largest], a[i]];
+                pushStep({ type: 'swap', indices: [i, largest], message: 'Heaping: swapping nodes' });
+                heapify(n, largest);
+            }
+        };
+        for (let i = Math.floor(n / 2) - 1; i >= 0; i--) heapify(n, i);
+        for (let i = n - 1; i > 0; i--) {
+            [a[0], a[i]] = [a[i], a[0]];
+            pushStep({ type: 'swap', indices: [0, i], message: 'Extracting max to sorted section' });
+            pushStep({ type: 'sorted', index: i, message: `${a[i]} finalized` });
+            heapify(i, 0);
+        }
+        pushStep({ type: 'sorted', index: 0, message: 'Heap Sort Complete' });
+    } else if (algo === 'shell_sort') {
+        for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+            pushStep({ type: 'info', message: `Gap reduced to ${gap}` });
+            for (let i = gap; i < n; i++) {
+                let temp = a[i];
+                let j;
+                for (j = i; j >= gap; j -= gap) {
+                    pushStep({ type: 'compare', indices: [j - gap, j], message: 'Shell: Gap comparison' });
+                    if (a[j - gap] > temp) {
+                        a[j] = a[j - gap];
+                        pushStep({ type: 'swap', indices: [j, j - gap], message: 'Shell: Shifting' });
+                    } else break;
+                }
+                a[j] = temp;
+            }
+        }
+        for(let i=0; i<n; i++) pushStep({type: 'sorted', index: i, message: 'Shell Sort Complete'});
+    } else if (algo === 'counting_sort') {
+        let max = Math.max(...a);
+        let count = new Array(max + 1).fill(0);
+        for (let i = 0; i < n; i++) {
+            count[a[i]]++;
+            pushStep({ type: 'active', indices: [i], message: `Counting frequencies: ${a[i]}` });
+        }
+        let k = 0;
+        for (let i = 0; i <= max; i++) {
+            while (count[i] > 0) {
+                a[k] = i;
+                pushStep({ type: 'active', indices: [k], message: `Placing ${i} back` });
+                pushStep({ type: 'sorted', index: k, message: `${i} locked` });
+                count[i]--;
+                k++;
+            }
+        }
+    } else if (algo === 'radix_sort') {
+        let max = Math.max(...a);
+        for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
+            pushStep({ type: 'info', message: `Radix: pass for digit at ${exp} position` });
+            let output = new Array(n).fill(0);
+            let count = new Array(10).fill(0);
+            for (let i = 0; i < n; i++) count[Math.floor(a[i] / exp) % 10]++;
+            for (let i = 1; i < 10; i++) count[i] += count[i - 1];
+            for (let i = n - 1; i >= 0; i--) {
+                let digit = Math.floor(a[i] / exp) % 10;
+                output[count[digit] - 1] = a[i];
+                count[digit]--;
+            }
+            for (let i = 0; i < n; i++) {
+                a[i] = output[i];
+                pushStep({ type: 'active', indices: [i], message: 'Radix: restoring from buckets' });
+            }
+        }
+        for(let i=0; i<n; i++) pushStep({type: 'sorted', index: i, message: 'Radix Sort Complete'});
+    } else if (algo === 'bucket_sort') {
+        let max = Math.max(...a);
+        let bucketCount = Math.floor(Math.sqrt(n)) || 1;
+        let buckets: number[][] = Array.from({ length: bucketCount }, () => []);
+        for (let i = 0; i < n; i++) {
+            let bIdx = Math.floor((a[i] / (max + 1)) * bucketCount);
+            buckets[bIdx].push(a[i]);
+            pushStep({ type: 'active', indices: [i], message: `Placing in bucket ${bIdx}` });
+        }
+        let k = 0;
+        for (let i = 0; i < bucketCount; i++) {
+            buckets[i].sort((x, y) => x - y);
+            for (let val of buckets[i]) {
+                a[k] = val;
+                pushStep({ type: 'active', indices: [k], message: `Restoring from bucket ${i}` });
+                pushStep({ type: 'sorted', index: k, message: 'Finalized' });
+                k++;
+            }
+        }
+    } else if (algo === 'tim_sort') {
+        const RUN = 32;
+        for (let i = 0; i < n; i += RUN) {
+            let end = Math.min(i + RUN - 1, n - 1);
+            for (let j = i + 1; j <= end; j++) {
+                let temp = a[j];
+                let k = j - 1;
+                while (k >= i && a[k] > temp) {
+                    a[k + 1] = a[k];
+                    pushStep({ type: 'swap', indices: [k, k + 1], message: 'TimSort: Insertion phase' });
+                    k--;
+                }
+                a[k + 1] = temp;
+            }
+        }
+        for (let size = RUN; size < n; size = 2 * size) {
+            for (let left = 0; left < n; left += 2 * size) {
+                let mid = left + size - 1;
+                let right = Math.min((left + 2 * size - 1), (n - 1));
+                if (mid < right) {
+                    let sub = a.slice(left, right + 1).sort((x, y) => x - y);
+                    for (let i = 0; i < sub.length; i++) {
+                        a[left + i] = sub[i];
+                        pushStep({ type: 'active', indices: [left + i], message: 'TimSort: Merge phase' });
+                    }
+                }
+            }
+        }
+        for(let i=0; i<n; i++) pushStep({type: 'sorted', index: i, message: 'TimSort Complete'});
     } else {
-        // Fallback proxy for others to keep visualization moving
-        return generateSteps(arr, 'bubble_sort');
+        // Absolute fallback if something goes wrong
+        a.sort((x, y) => x - y);
+        for(let i=0; i<n; i++) pushStep({type: 'sorted', index: i, message: 'Sorting Complete'});
     }
     return steps;
   };
@@ -172,20 +336,13 @@ const SortingVisualizer: React.FC<Props> = ({ array, algorithm }) => {
 
     const newItems = step.array.map((v, i) => {
         let status: Status = 'default';
+        if (step.sortedIndices?.includes(i)) status = 'sorted';
+
         if (step.indices?.includes(i)) {
             if (step.type === 'compare') status = 'comparing';
             else if (step.type === 'swap') status = 'swapping';
             else if (step.type === 'pivot') status = 'pivot';
             else if (step.type === 'active') status = 'active';
-        }
-
-        // Persistence of sorted state
-        if (step.type === 'sorted') {
-            if (step.mode === 'selection' && i <= step.index!) status = 'sorted';
-            else if (step.mode === 'insertion' && i <= step.index!) status = 'sorted';
-            else if (i === step.index || items[i]?.status === 'sorted') status = 'sorted';
-        } else if (items[i]?.status === 'sorted') {
-            status = 'sorted';
         }
 
         return { value: v, status };
